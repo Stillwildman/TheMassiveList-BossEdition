@@ -2,7 +2,6 @@ package com.vincent.massivelist;
 
 import java.io.File;
 import java.net.URLEncoder;
-
 import android.content.Context;
 import android.os.Environment;
 
@@ -28,7 +27,7 @@ public class FileCache
         //String filename = String.valueOf(url.hashCode());
         //Another possible solution (thanks to grantland)
         String filename = URLEncoder.encode(url);
-        File f = new File(cacheDir, filename);
+        File f = new File(cacheDir, filename.substring(filename.lastIndexOf("%2F")+3));
         return f;
     }
     

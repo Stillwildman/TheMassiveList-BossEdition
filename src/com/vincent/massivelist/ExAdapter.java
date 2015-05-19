@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 public class ExAdapter extends BaseExpandableListAdapter {
@@ -64,7 +62,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		SmileysParser.init(context);
 		parser = SmileysParser.getInstance();
 		
-		url_array = context.getResources().getStringArray(R.array.url_array);
+		url_array = context.getResources().getStringArray(R.array.url_array);		//獲得本機資源裡的 url_array
 		ranUrlNumList = new ArrayList<Integer>();
 		getRanArrNum();
 	}
@@ -109,13 +107,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		} else
 			holder = (ViewHolder) convertView.getTag();
 		
-		if (holder.loadingImage.getVisibility() == View.VISIBLE)
+		try
 		{
-			try
-			{
-				imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
+			imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
 
-				/*	//(The "GetWebImg" way, from PTT)
+			/*	//(The "GetWebImg" way, from PTT)
 				if (webImg.IsCache(url_array[ranUrlNumList.get(groupPosition)]) == false)
 					webImg.LoadUrlPic(url_array[ranUrlNumList.get(groupPosition)], handler);
 				else if (webImg.IsDownLoadFine(url_array[ranUrlNumList.get(groupPosition)]) == true)
@@ -124,27 +120,26 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					holder.loadingImage.setVisibility(View.GONE);
 					holder.image.setVisibility(View.VISIBLE);
 				} else {}
-				 */
-				//holder.image.setImageBitmap(Icon);
-			}
-			catch (OutOfMemoryError e) {
-				e.printStackTrace();
-				//Icon.recycle();
-				Log.e("OOM Oops!", e.getMessage().toString());
-				Log.e("Memory","Out!");
-			} catch (Exception e) {
-				e.printStackTrace();
-				Log.e("Oops!", e.getMessage().toString());
-			} finally
-			{
-				notifyDataSetChanged();
-			}
+			 */
+			//holder.image.setImageBitmap(Icon);
 		}
+		catch (OutOfMemoryError e) {
+			e.printStackTrace();
+			//Icon.recycle();
+			Log.e("OOM Oops!", e.getMessage().toString());
+			Log.e("Memory","Out!");
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e("Oops!", e.getMessage().toString());
+		} finally {
+			notifyDataSetChanged();
+		}
+
 		if (holder.image.getDrawable() != null)
 		{
 			holder.loadingImage.setVisibility(View.GONE);
 			holder.image.setVisibility(View.VISIBLE);
-			
+			/*												//這一段，是用來產生隨機數量的image在 isDivisible 2 的地方
 			holder.exGroupLinear.removeAllViews();
 			if (isDivisible(groupPosition, 2))
 			{
@@ -158,6 +153,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					holder.exGroupLinear.addView(iv, params);
 				}
 			}
+			*/
 		}
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
