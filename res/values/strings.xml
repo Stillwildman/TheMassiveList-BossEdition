@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TheMassiveList</string>
+    <string name="TestingText">This is a Massive ListView Sample</string>
+    <string name="InputHint">Enter a number</string>
+    <string name="Version">3.0</string>
+
+</resources>
