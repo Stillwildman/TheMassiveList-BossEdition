@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -43,7 +42,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	ImageLoader imageLoader;
 	//GetWebImg webImg;
 	
-	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild)
+	private ArrayList<Integer> ranHtmlCountList;
+	private ArrayList<String> ranHtmlColorList;
+	private ArrayList<Integer> ranHtmlIconList;
+	
+	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild, String[] urlList)
 	{
 		this.context = context;
 		this.listGroup = listGroup;
@@ -62,9 +65,15 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		SmileysParser.init(context);
 		parser = SmileysParser.getInstance();
 		
-		url_array = context.getResources().getStringArray(R.array.url_array);		//獲得本機資源裡的 url_array
+		//url_array = context.getResources().getStringArray(R.array.url_array);		//獲得本機資源裡的 url_array
+		this.url_array = urlList;
 		ranUrlNumList = new ArrayList<Integer>();
 		getRanArrNum();
+		
+		ranHtmlCountList = new ArrayList<Integer>();
+		ranHtmlColorList = new ArrayList<String>();
+		ranHtmlIconList = new ArrayList<Integer>();
+		setRanHtmlAtDivisible(5);
 	}
 
 	@Override
@@ -101,7 +110,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			holder.text2 = (TextView) convertView.findViewById(R.id.groupText2);
 			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
 			holder.loadingImage = (ProgressBar) convertView.findViewById(R.id.loadingImage);
-			holder.exGroupLinear = (LinearLayout) convertView.findViewById(R.id.exGroupLinear);
 			
 			convertView.setTag(holder);
 		} else
@@ -158,6 +166,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
 		holder.text1.setText(parser.addSmileySpans(groupText));
+		
 		holder.text2.setText(parser.addSmileySpans(groupNumber));
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
@@ -175,9 +184,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		if (isDivisible(groupPosition, 100))						//不然根據ViewHolder Reuse view的特性，
 			convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
 		
-		if (isDivisible(groupPosition, 5))
+		for (int i = 0; i < ranHtmlCountList.size(); i++)
 		{
-			holder.text1.setText(parser.addSmileySpans(htmlText(groupText)));			//放入 htmlText() 所回傳的字串，以html的格式顯示字型
+			if (groupPosition+1 == ranHtmlCountList.get(i))
+				holder.text1.setText(parser.addSmileySpans(htmlText(groupText, ranHtmlColorList.get(i), ranHtmlIconList.get(i))));
 		}
 		((MainListActivity) context).showMemory();
 		return convertView;
@@ -247,7 +257,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		TextView text2;
 		ImageView image;
 		ProgressBar loadingImage;
-		LinearLayout exGroupLinear;
 	}
 	
 	private boolean isDivisible(int position, int target)		//用於判斷指定的 position 是否為 target 的倍數~(ˋ_>ˊ)
@@ -287,21 +296,26 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		Log.i("RanCount", "" + ranCount);
 	}
 	
-	public Spanned htmlText(String text)
+	public Spanned htmlText(String text, String ranColor, int ranIcon)
 	{
 		ran = new Random();
 		
 		int textLen = text.length() / 2;							//將收到的字串，取一半長 (測試用!)
-		int ranColor = 0xff000000 | ran.nextInt(0x00ffffff);		//產生隨機 Color 代碼~
+		//int ranColor = 0xff000000 | ran.nextInt(0x00ffffff);		//產生隨機 Color 代碼~
 		
 		String text1 = text.substring(0, textLen);
 		String text2 = text.substring(textLen);
 		
+		List<String[]> iconName = ((MainListActivity) context).getImageName();
+		
 		htmlSb = new StringBuilder();
 		
-		htmlSb.insert(0,"<b>").append(text1).append("</b>")
-		.append("<font color=").append(String.valueOf(ranColor)).append("><i>").append(text2).append("</i></font>");
-		
+		if (iconName.size() != 0)
+		{
+			htmlSb.insert(0,"<b>").append(text1).append("</b>")
+			.append(iconName.get(ranIcon)[0]).append("<font color=").append(ranColor)
+			.append("><i>").append(text2).append("</i></font>");
+		}
 		return Html.fromHtml(htmlSb.toString());				//以上都跟 html 無關！只有這行的 Html.fromHtml() 才跟 html 有關阿~
 	}
 	
@@ -310,6 +324,28 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		for (int i = 0; i < getGroupCount(); i++)
 		{
 			ranUrlNumList.add(ran.nextInt(url_array.length));
+		}
+	}
+	
+	private void setRanHtmlAtDivisible(int position)
+	{
+		int total = getGroupCount() / position;
+		for (int i = 1; i <= total; i++)
+		{
+			ranHtmlCountList.add(position * i);
+		}
+		ran = new Random();
+		int ranColor;
+		List<String[]> iconName = ((MainListActivity) context).getImageName();
+		int ranIconNum;
+		
+		for (int i = 0; i < ranHtmlCountList.size(); i++)
+		{
+			ranColor = 0xff000000 | ran.nextInt(0x00ffffff);
+			ranHtmlColorList.add(String.valueOf(ranColor));
+			
+			ranIconNum = ran.nextInt(iconName.size());
+			ranHtmlIconList.add(ranIconNum);
 		}
 	}
 }

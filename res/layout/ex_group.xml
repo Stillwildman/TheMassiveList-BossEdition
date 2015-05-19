@@ -4,17 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="fill_parent" >
 
-    <LinearLayout
-        android:id="@+id/exGroupLinear"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/groupText1"
-        android:layout_centerVertical="true"
-        android:gravity="center"
-        android:orientation="horizontal" >
-
-    </LinearLayout>
-
     <ImageView
         android:id="@+id/Image1"
         android:layout_width="wrap_content"

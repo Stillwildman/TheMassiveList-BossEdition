@@ -158,6 +158,7 @@ public class MainListActivity extends Activity
 		
 		private Dialog dialog;
 		private TextView loadingText;
+		private String[] urlList;
     	//InputMethodManager input;
 		
 		@SuppressLint("InflateParams") @Override
@@ -185,6 +186,19 @@ public class MainListActivity extends Activity
 		@Override
 		protected Void doInBackground(String... params)
 		{
+			GetStringByUrl urlString = new GetStringByUrl(getString(R.string.ImageUrl));	//從Testing server上取得Image URL的清單
+			String[] urlTempString = urlString.getString().split(",");		//URL清單中的每個檔名，是以","做區隔，所以在這裡將他分割為Array
+			StringBuilder urlSb;
+			ArrayList<String> urlTempList = new ArrayList<String>();
+			for (String s: urlTempString)
+			{
+				urlSb = new StringBuilder(s);
+				urlSb.insert(0, "http://60.199.201.66/");		//獲得的檔名為 images/(fileName)，因此在前面再加上Server的路徑~
+				urlTempList.add(urlSb.toString());
+			}
+			urlTempString = new String[urlTempList.size()];		//將 ArrayList 轉為 String[]
+			urlList = urlTempList.toArray(urlTempString);
+			
 			count = Integer.parseInt(params[0]);
 			text = params[1];
 
@@ -192,8 +206,10 @@ public class MainListActivity extends Activity
 
 			ArrayList<Integer> ranNumList = new ArrayList<Integer>();		//用來儲存 ranNum
 			ArrayList<Integer> ranMultiList = new ArrayList<Integer>();		//用來儲存 ranMulti
+			
 			int ranCount = (int) (count * 0.1);								//新增一個int，值為總行數(count)的10分之1
 			Random ran = new Random();
+			StringBuilder sb;
 
 			for (int i = 0; i < ranCount; i++)			//產生"ranCount"個的亂數
 			{
@@ -219,7 +235,7 @@ public class MainListActivity extends Activity
 				{
 					if (i == ranNumList.get(j))							//如果該次的 i 等於ranNumList其中一個數字的話...
 					{													//由於 i 是從 1 開始去run，所以一定是從ranNumList中最小的值開始抓到
-						StringBuilder sb = new StringBuilder();			
+						sb = new StringBuilder();			
 						Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
 																		//所以在這裡也順便給 ranNumList 給做了排序...
 																		//意外發現 Bubble Sort 之外的另一個排序法阿！
@@ -247,7 +263,7 @@ public class MainListActivity extends Activity
 		}
 		protected void onPostExecute(Void result)
 		{
-			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild);
+			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild, urlList);
 			//exList.setIndicatorBounds(0,100);
 			exList.setAdapter(exAdapter);
 			dialog.dismiss();
@@ -392,7 +408,7 @@ public class MainListActivity extends Activity
     			iconLayout.addView(imgBtn);
     			iconsLayout.addView(iconLayout);
     			btnWidthSum = 0;
-    			shortMessage("OOPS~~~~~~~~");
+    			//shortMessage("OOPS~~~~~~~~");
     		}
     		imgBtn.setOnClickListener(btnClick);
     	}
@@ -456,9 +472,6 @@ public class MainListActivity extends Activity
     	{
     		imgName = img[0];
     		imgFullName = img[1];
-    		Log.i("imgName", imgName);
-    		Log.i("imgFullName", imgFullName);
-
     		imgNameItem.put(imgName, imgFullName);
     	}
     	return imgNameItem;
