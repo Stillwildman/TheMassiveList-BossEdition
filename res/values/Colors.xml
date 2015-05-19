@@ -3,5 +3,6 @@
     
     <color name="LightBrown">#372C24</color>
     <color name="SteelBlue">#4682B4</color>
+    <color name="Transparent">#Cf000000</color>
     
 </resources>

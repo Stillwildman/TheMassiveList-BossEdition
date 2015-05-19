@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
@@ -85,7 +86,13 @@ public class SmileysParser
 		while (matcher.find())
 		{
 			int resId = smileyMap.get(matcher.group());
-			builder.setSpan(new ImageSpan(context, resId), matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			
+			Drawable resDraw = context.getResources().getDrawable(resId);
+			resDraw.setBounds(0, 0, 50, 50);
+			
+			ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
+			
+			builder.setSpan(imageSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		}
 		return builder;
 	}

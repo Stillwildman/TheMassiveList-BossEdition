@@ -34,6 +34,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private StringBuilder htmlSb;
 	//private String htmlStr;
 	
+	SmileysParser parser;
+	
 	private Bitmap Icon;
 	
 	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild)
@@ -46,6 +48,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		ranCount = (int) (listGroup.size() * 0.5);
 		setRanColor();
+		
+		SmileysParser.init(context);
+		parser = SmileysParser.getInstance();
 	}
 
 	@Override
@@ -105,8 +110,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
-		holder.text1.setText(groupText);
-		holder.text2.setText(groupNumber);
+		holder.text1.setText(parser.addSmileySpans(groupText));
+		holder.text2.setText(parser.addSmileySpans(groupNumber));
 		//sampleText.setText(sample);
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
@@ -126,7 +131,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		if (isDivisible(groupPosition, 5))
 		{
-			holder.text1.setText(htmlText(groupText));
+			holder.text1.setText(parser.addSmileySpans(htmlText(groupText)));			//放入 htmlText() 所回傳的字串，以html的格式顯示字型
 		}
 		return convertView;
 	}
@@ -225,8 +230,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	{
 		ran = new Random();
 		
-		int textLen = text.length() / 2;
-		int ranColor = 0xff000000 | ran.nextInt(0x00ffffff);
+		int textLen = text.length() / 2;							//將收到的字串，取一半長 (測試用!)
+		int ranColor = 0xff000000 | ran.nextInt(0x00ffffff);		//產生隨機 Color 代碼~
 		
 		String text1 = text.substring(0, textLen);
 		String text2 = text.substring(textLen);
@@ -238,6 +243,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		//htmlStr = "<b>" + text1 + "</b> <font color=" + String.valueOf(ranColor) + "><i>" + text2 + "</i></font>";
 		
-		return Html.fromHtml(htmlSb.toString());
+		return Html.fromHtml(htmlSb.toString());				//以上都跟 html 無關！只有這行的 Html.fromHtml() 才跟 html 有關阿~
 	}
 }
