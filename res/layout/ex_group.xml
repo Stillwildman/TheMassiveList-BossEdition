@@ -1,27 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/exGroupLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="fill_parent" >
+
+    <LinearLayout
+        android:id="@+id/exGroupLinear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/groupText1"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:orientation="horizontal" >
+
+    </LinearLayout>
 
     <ImageView
-        android:id="@+id/sampleImage"
+        android:id="@+id/Image1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
-        android:scaleType="center" />
+        android:scaleType="center"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/loadingImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:visibility="visible" />
 
     <TextView
         android:id="@+id/groupText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
+        android:layout_centerVertical="false"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:layout_toLeftOf="@+id/groupText2"
-        android:layout_toRightOf="@+id/sampleImage"
+        android:layout_toRightOf="@+id/Image1"
         android:textSize="15sp" />
 
     <TextView

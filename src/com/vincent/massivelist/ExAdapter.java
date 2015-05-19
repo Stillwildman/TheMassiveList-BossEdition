@@ -7,23 +7,26 @@ import java.util.Random;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private Context context;
+	private LayoutInflater inflater;
 	private List<Map<String, String>> listGroup;
 	private List<List<Map<String, String>>> listChild;
 	
@@ -32,25 +35,38 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private ArrayList<Integer> ranPosList;
 	private ArrayList<String> ranColorList;
 	private StringBuilder htmlSb;
-	//private String htmlStr;
 	
 	SmileysParser parser;
 	
-	private Bitmap Icon;
+	//private Bitmap Icon;
+	
+	private String[] url_array;
+	private ArrayList<Integer> ranUrlNumList;
+	ImageLoader imageLoader;
+	//GetWebImg webImg;
 	
 	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild)
 	{
 		this.context = context;
 		this.listGroup = listGroup;
 		this.listChild = listChild;
+		/*
 		Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.coffee_icon);
 		Icon = icon;
+		*/
+		inflater = LayoutInflater.from(context);
+		imageLoader = new ImageLoader(context.getApplicationContext());
+		//webImg = new GetWebImg(context);
 		
-		ranCount = (int) (listGroup.size() * 0.5);
+		ranCount = (int) (getGroupCount() * 0.5);
 		setRanColor();
 		
 		SmileysParser.init(context);
 		parser = SmileysParser.getInstance();
+		
+		url_array = context.getResources().getStringArray(R.array.url_array);
+		ranUrlNumList = new ArrayList<Integer>();
+		getRanArrNum();
 	}
 
 	@Override
@@ -79,40 +95,74 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		if (convertView == null)
 		{
-			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			//LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = inflater.inflate(R.layout.ex_group, null);
 			
 			holder = new ViewHolder();
 			holder.text1 = (TextView) convertView.findViewById(R.id.groupText1);
 			holder.text2 = (TextView) convertView.findViewById(R.id.groupText2);
-			holder.image = (ImageView) convertView.findViewById(R.id.sampleImage);
+			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
+			holder.loadingImage = (ProgressBar) convertView.findViewById(R.id.loadingImage);
+			holder.exGroupLinear = (LinearLayout) convertView.findViewById(R.id.exGroupLinear);
 			
 			convertView.setTag(holder);
 		} else
 			holder = (ViewHolder) convertView.getTag();
 		
-		/*  (The old way, not efficient!)
-		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.ex_group, null);
-		
-		TextView sampleText = (TextView) layout.findViewById(R.id.sampleText);
-		ImageView sampleImage = (ImageView) layout.findViewById(R.id.sampleImage);
-		*/
-		
-		try {
-			holder.image.setImageBitmap(Icon);
-			//sampleImage.setImageBitmap(Icon);
-			((MainListActivity) context).showMemory();
-		} catch (OutOfMemoryError e) {
-			e.printStackTrace();
-			Icon.recycle();
-			Log.e("Memory","Out!");
+		if (holder.loadingImage.getVisibility() == View.VISIBLE)
+		{
+			try
+			{
+				imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
+
+				/*	//(The "GetWebImg" way, from PTT)
+				if (webImg.IsCache(url_array[ranUrlNumList.get(groupPosition)]) == false)
+					webImg.LoadUrlPic(url_array[ranUrlNumList.get(groupPosition)], handler);
+				else if (webImg.IsDownLoadFine(url_array[ranUrlNumList.get(groupPosition)]) == true)
+				{
+					holder.image.setImageBitmap(webImg.getImg(url_array[ranUrlNumList.get(groupPosition)]));
+					holder.loadingImage.setVisibility(View.GONE);
+					holder.image.setVisibility(View.VISIBLE);
+				} else {}
+				 */
+				//holder.image.setImageBitmap(Icon);
+			}
+			catch (OutOfMemoryError e) {
+				e.printStackTrace();
+				//Icon.recycle();
+				Log.e("OOM Oops!", e.getMessage().toString());
+				Log.e("Memory","Out!");
+			} catch (Exception e) {
+				e.printStackTrace();
+				Log.e("Oops!", e.getMessage().toString());
+			} finally
+			{
+				notifyDataSetChanged();
+			}
+		}
+		if (holder.image.getDrawable() != null)
+		{
+			holder.loadingImage.setVisibility(View.GONE);
+			holder.image.setVisibility(View.VISIBLE);
+			
+			holder.exGroupLinear.removeAllViews();
+			if (isDivisible(groupPosition, 2))
+			{
+				int ranNum = ran.nextInt(9)+2;
+				for (int i = 0; i < ranNum; i++)
+				{
+					ImageView iv = new ImageView(context);
+					imageLoader.DisplayImage(url_array[ran.nextInt(url_array.length)], iv);
+					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+							(LayoutParams.MATCH_PARENT, 50, Gravity.CENTER);
+					holder.exGroupLinear.addView(iv, params);
+				}
+			}
 		}
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
 		holder.text1.setText(parser.addSmileySpans(groupText));
 		holder.text2.setText(parser.addSmileySpans(groupNumber));
-		//sampleText.setText(sample);
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.text2.setTextColor(Color.BLACK);
@@ -133,9 +183,22 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		{
 			holder.text1.setText(parser.addSmileySpans(htmlText(groupText)));			//放入 htmlText() 所回傳的字串，以html的格式顯示字型
 		}
+		((MainListActivity) context).showMemory();
 		return convertView;
 	}
-
+	/*
+	@SuppressLint("HandlerLeak")
+	Handler handler = new Handler()		//告訴BaseAdapter資料已經更新了 (給 GetWebImg 用的 Handler)
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			Log.d("Handler", "notifyDataSetChanged");
+			notifyDataSetChanged();
+			super.handleMessage(msg);
+		}
+	};
+	 */
 	@Override
 	public int getChildrenCount(int groupPosition) {
 		// TODO Auto-generated method stub
@@ -187,11 +250,13 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		TextView text1;
 		TextView text2;
 		ImageView image;
+		ProgressBar loadingImage;
+		LinearLayout exGroupLinear;
 	}
 	
 	private boolean isDivisible(int position, int target)		//用於判斷指定的 position 是否為 target 的倍數~(ˋ_>ˊ)
 	{
-		int total = listGroup.size() / target;
+		int total = getGroupCount() / target;
 		
 		for (int i = 1; i <= total; i++)
 		{
@@ -212,7 +277,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		for (int i = 0; i < ranCount; i++)
 		{
-			int ranPos = ran.nextInt(listGroup.size())+1;
+			int ranPos = ran.nextInt(getGroupCount())+1;
 			int ranColor = 0xff000000 | ran.nextInt(0x00ffffff);	// Random 出  Color 代碼，沒字母，只有數字，短至6位，長至8位，
 																	//不確定是幾進制，而且產出結果都是以 "-" 開頭，
 			ranColorSb.delete(0, 9);								//重點是，竟然還可以直接用 setTextColor 來套用?! Tell me why~~~~(ˊ_>ˋ)
@@ -241,8 +306,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		htmlSb.insert(0,"<b>").append(text1).append("</b>")
 		.append("<font color=").append(String.valueOf(ranColor)).append("><i>").append(text2).append("</i></font>");
 		
-		//htmlStr = "<b>" + text1 + "</b> <font color=" + String.valueOf(ranColor) + "><i>" + text2 + "</i></font>";
-		
 		return Html.fromHtml(htmlSb.toString());				//以上都跟 html 無關！只有這行的 Html.fromHtml() 才跟 html 有關阿~
+	}
+	
+	private void getRanArrNum()
+	{
+		for (int i = 0; i < getGroupCount(); i++)
+		{
+			ranUrlNumList.add(ran.nextInt(url_array.length));
+		}
 	}
 }

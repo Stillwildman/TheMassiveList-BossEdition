@@ -10,6 +10,7 @@ package com.vincent.massivelist;
 public final class R {
     public static final class array {
         public static final int smileys_array=0x7f050000;
+        public static final int url_array=0x7f050001;
     }
     public static final class attr {
     }
@@ -33,26 +34,29 @@ public final class R {
         public static final int smiley_wink=0x7f02000b;
     }
     public static final class id {
-        public static final int Line1=0x7f080008;
-        public static final int Line2=0x7f08000a;
-        public static final int LinearLayout1=0x7f080004;
+        public static final int Image1=0x7f080004;
+        public static final int Line1=0x7f08000b;
+        public static final int Line2=0x7f08000d;
+        public static final int LinearLayout1=0x7f080007;
         public static final int childText1=0x7f080000;
-        public static final int groupText1=0x7f080002;
-        public static final int groupText2=0x7f080003;
-        public static final int imageCool=0x7f08000e;
-        public static final int imageDead=0x7f080011;
-        public static final int imageHappy=0x7f08000c;
-        public static final int imageLayout=0x7f08000b;
-        public static final int imageLove=0x7f08000d;
-        public static final int imageSad=0x7f080010;
-        public static final int imageWink=0x7f08000f;
-        public static final int loadingBar=0x7f080006;
-        public static final int memTip=0x7f080007;
-        public static final int numberInput=0x7f080005;
-        public static final int sampleExList=0x7f080009;
-        public static final int sampleImage=0x7f080001;
-        public static final int sendBtn=0x7f080013;
-        public static final int textInput=0x7f080012;
+        public static final int exGroupLayout=0x7f080001;
+        public static final int exGroupLinear=0x7f080002;
+        public static final int groupText1=0x7f080003;
+        public static final int groupText2=0x7f080006;
+        public static final int imageCool=0x7f080011;
+        public static final int imageDead=0x7f080014;
+        public static final int imageHappy=0x7f08000f;
+        public static final int imageLayout=0x7f08000e;
+        public static final int imageLove=0x7f080010;
+        public static final int imageSad=0x7f080013;
+        public static final int imageWink=0x7f080012;
+        public static final int loadingBar=0x7f080009;
+        public static final int loadingImage=0x7f080005;
+        public static final int memTip=0x7f08000a;
+        public static final int numberInput=0x7f080008;
+        public static final int sampleExList=0x7f08000c;
+        public static final int sendBtn=0x7f080016;
+        public static final int textInput=0x7f080015;
     }
     public static final class layout {
         public static final int ex_child=0x7f030000;
@@ -64,6 +68,7 @@ public final class R {
         public static final int TestingText=0x7f060001;
         public static final int Version=0x7f060003;
         public static final int app_name=0x7f060000;
+        public static final int cache_dirname=0x7f060004;
     }
     public static final class style {
         /** 

@@ -73,7 +73,8 @@ public class MainListActivity extends Activity
 		numberInput.setFocusableInTouchMode(true);
 		
 		numberInput.addTextChangedListener(new TextWatcher() {
-			public void onTextChanged(CharSequence s, int start, int before, int count){
+			public void onTextChanged(CharSequence s, int start, int before, int count)
+			{
 				if (input.isEmpty())
 				{
 					if (numberInput.getText().toString().isEmpty())
@@ -123,32 +124,32 @@ public class MainListActivity extends Activity
 		{
 			count = Integer.parseInt(params[0]);
 			text = params[1];
-			
+
 			/*--------------從這裡--------------------------一直到------------------------ */
-			
+
 			ArrayList<Integer> ranNumList = new ArrayList<Integer>();		//用來儲存 ranNum
 			ArrayList<Integer> ranMultiList = new ArrayList<Integer>();		//用來儲存 ranMulti
 			int ranCount = (int) (count * 0.1);								//新增一個int，值為總行數(count)的10分之1
 			Random ran = new Random();
-			
+
 			for (int i = 0; i < ranCount; i++)			//產生"ranCount"個的亂數
 			{
 				int ranNum = ran.nextInt(count)+1;			//亂數範圍為1~count
 				int ranMulti = ran.nextInt(16)+5;			//產生5~20的亂數，用來決定sb要加幾倍
 				Log.i("ranNumber",""+ranNum);
 				Log.i("ranMultiple",""+ranMulti);
-				
+
 				ranNumList.add(ranNum);
 				ranMultiList.add(ranMulti);
 			}
-			
+
 			for (int i = 1; i <= count; i++)
 			{
 				Map<String, String> listGroupItem = new HashMap<String, String>();
-				
+
 				listGroupItem.put("groupSample", text);		//正常put進固定的內容
 				listGroupItem.put("groupNumber", " "+i);
-				
+
 				for (int j = 0; j < ranCount; j++)						//從這裡開始run "ranCount" 次的迴圈
 				{
 					if (i == ranNumList.get(j))							//如果該次的 i 等於ranNumList其中一個數字的話...
@@ -165,17 +166,18 @@ public class MainListActivity extends Activity
 					}
 				}
 				listGroup.add(listGroupItem);
-				
+
 				/*----------到這裡，來給在既有的Group數量下，產生一定比例的亂數(挑出10分之1個)，
 				 * 然後被選中的那幾個，再依ranMultiList中的值，給與指定倍數的成長！-----------I'm fucking Brilliant!-----*/
-				
+
 				List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
 				Map<String, String> listChildItem = new HashMap<String, String>();
-				
+
 				listChildItem.put("childSample", ""+i);
 				listChildItems.add(listChildItem);
 				listChild.add(listChildItems);
 			}
+			ThreadLogUtils.logThread();
 			return null;
 		}
 		protected void onPostExecute(Void result)
