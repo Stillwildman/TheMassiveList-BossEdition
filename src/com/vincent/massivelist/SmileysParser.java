@@ -194,28 +194,12 @@ public class SmileysParser
 				waitDraw.setBounds(0, 0, 50, 50);
 				ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
 				builder.setSpan(imageSpan, textString.indexOf("/"), textString.lastIndexOf("/")+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-				//updateImgMap(text.toString());
 			}
 		}
 
 		return builder;
 	}
 	
-	/*
-	private void updateImgMap(String text)
-	{
-		for (String[] s: ((MainListActivity) context).getImageName())
-		{
-			if (text.contains(s[0]))
-			{
-				imgMap = getImgMap();
-				imageNames = getImgNames();
-				imgMapPattern = imgMapPattern();
-			}
-		}
-	}
-	*/
 	private static Bitmap drawableToBitmap(Drawable draw)
 	{
 		int width = draw.getIntrinsicWidth();

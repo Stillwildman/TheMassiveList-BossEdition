@@ -113,34 +113,6 @@ public class MainListActivity extends Activity
 				return false;
 			}
 		});
-		/*
-		numberInput.addTextChangedListener(new TextWatcher() {
-			public void onTextChanged(final CharSequence s, int start, int before, int count)
-			{
-				if (input.isEmpty())
-				{
-					if (numberInput.getText().toString().isEmpty())
-						new createAsyncList().execute(defualtNum, testingText);
-					else {
-						inputNum = String.valueOf(s.toString());
-						new createAsyncList().execute(inputNum, testingText);
-					}
-				} else
-				{
-					if (numberInput.getText().toString().isEmpty())
-						new createAsyncList().execute(defualtNum, input);
-					else {
-						inputNum = String.valueOf(s.toString());
-						new createAsyncList().execute(inputNum, input);
-					}
-				}
-			}
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-			@Override
-			public void afterTextChanged(Editable s) {}
-		});
-		*/
 		collapseOther();
 		showMemory();
 		
@@ -501,8 +473,10 @@ public class MainListActivity extends Activity
     		for (File img: imgCount)
     		{
     			imgFullName = img.getName();	//完整檔案名稱，包含副檔名
-    			imgNameSb = new StringBuilder(imgFullName).insert(0, "/").insert(imgFullName.lastIndexOf(".")+1, "/");	//修改Image的檔名~
-    			imgName = imgNameSb.substring(0, imgNameSb.lastIndexOf(".")).replace("%2B", "+");	//新的 image name，含 /../ 不含副檔名
+    			imgNameSb = new StringBuilder(imgFullName).insert(imgFullName.lastIndexOf("%2F")+3, "/")
+    					.insert(imgFullName.lastIndexOf(".")+1, "/");	//修改Image的檔名~
+    			imgName = imgNameSb.substring(imgNameSb.lastIndexOf("%2F")+3, imgNameSb.lastIndexOf("."))
+    					.replace("%2B", "+");	//新的 image name，含 /../ 不含副檔名
 
     			Log.i("imgName", imgName);
     			Log.i("imgFullName", imgFullName);
@@ -548,6 +522,21 @@ public class MainListActivity extends Activity
     	smileyIconLayout.setVisibility(View.GONE);
     	showIconBtn.setImageResource(android.R.drawable.ic_menu_add);
     }
+    
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+	{
+		if (keyCode == KeyEvent.KEYCODE_BACK || event.getAction() == KeyEvent.KEYCODE_BACK)
+		{
+			if (iconShown)
+			{
+				hideIcons();
+				iconShown = false;
+			} else
+				android.os.Process.killProcess(android.os.Process.myPid());
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
     
 	public void shortMessage(String msg)
 	{

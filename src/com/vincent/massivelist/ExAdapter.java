@@ -42,6 +42,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	ImageLoader imageLoader;
 	//GetWebImg webImg;
 	
+	private List<String[]> iconName;
 	private ArrayList<Integer> ranHtmlCountList;
 	private ArrayList<String> ranHtmlColorList;
 	private ArrayList<Integer> ranHtmlIconList;
@@ -70,8 +71,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		ranUrlNumList = new ArrayList<Integer>();
 		getRanArrNum();
 		
-		ranHtmlCountList = new ArrayList<Integer>();
-		ranHtmlColorList = new ArrayList<String>();
+		iconName = ((MainListActivity) context).getImageName();  //獲得已存在cache中的image檔名
+		ranHtmlCountList = new ArrayList<Integer>();			//這3個東西，是用來將 隨機Color & 隨機imageName 存成List，
+		ranHtmlColorList = new ArrayList<String>();				//然後要在某個 isDivisible 的地方顯示用的~
 		ranHtmlIconList = new ArrayList<Integer>();
 		setRanHtmlAtDivisible(5);
 	}
@@ -183,12 +185,16 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
 		if (isDivisible(groupPosition, 100))						//不然根據ViewHolder Reuse view的特性，
 			convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
-		
-		for (int i = 0; i < ranHtmlCountList.size(); i++)
+		/*
+		if (!iconName.isEmpty())
 		{
-			if (groupPosition+1 == ranHtmlCountList.get(i))
-				holder.text1.setText(parser.addSmileySpans(htmlText(groupText, ranHtmlColorList.get(i), ranHtmlIconList.get(i))));
+			for (int i = 0; i < ranHtmlCountList.size(); i++)
+			{
+				if (groupPosition+1 == ranHtmlCountList.get(i))
+					holder.text1.setText(parser.addSmileySpans(htmlText(groupText, ranHtmlColorList.get(i), ranHtmlIconList.get(i))));
+			}
 		}
+		*/
 		((MainListActivity) context).showMemory();
 		return convertView;
 	}
@@ -306,12 +312,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		String text1 = text.substring(0, textLen);
 		String text2 = text.substring(textLen);
 		
-		List<String[]> iconName = ((MainListActivity) context).getImageName();
-		
 		htmlSb = new StringBuilder();
 		
-		if (iconName.size() != 0)
-		{
+		if (iconName.size() != 0)							//ranIcon = Random for IconList(ImageList)，總值是 0~List.size();
+		{													//也就是 ranHtmlIconList
 			htmlSb.insert(0,"<b>").append(text1).append("</b>")
 			.append(iconName.get(ranIcon)[0]).append("<font color=").append(ranColor)
 			.append("><i>").append(text2).append("</i></font>");
@@ -336,16 +340,17 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 		ran = new Random();
 		int ranColor;
-		List<String[]> iconName = ((MainListActivity) context).getImageName();
 		int ranIconNum;
 		
 		for (int i = 0; i < ranHtmlCountList.size(); i++)
 		{
 			ranColor = 0xff000000 | ran.nextInt(0x00ffffff);
 			ranHtmlColorList.add(String.valueOf(ranColor));
-			
-			ranIconNum = ran.nextInt(iconName.size());
-			ranHtmlIconList.add(ranIconNum);
+			if (!iconName.isEmpty())
+			{
+				ranIconNum = ran.nextInt(iconName.size());
+				ranHtmlIconList.add(ranIconNum);
+			}
 		}
 	}
 }
