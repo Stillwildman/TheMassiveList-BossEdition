@@ -77,17 +77,24 @@
             android:orientation="vertical" >
 
         </LinearLayout>
-        
-        <LinearLayout
-            android:id="@+id/smileysIconLayout"
-            android:layout_width="match_parent"
+
+        <HorizontalScrollView
+            android:id="@+id/iconScrollView"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:animateLayoutChanges="true"
-            android:gravity="center"
-            android:orientation="horizontal" >
+            android:animateLayoutChanges="true" >
 
-        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/smileysIconLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="true"
+                android:gravity="center"
+                android:orientation="horizontal" >
+            </LinearLayout>
+
+        </HorizontalScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"

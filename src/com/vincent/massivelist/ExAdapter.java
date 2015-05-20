@@ -42,7 +42,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	ImageLoader imageLoader;
 	//GetWebImg webImg;
 	
-	private List<String[]> iconName;
+	private List<String[]> imageName;
 	private ArrayList<Integer> ranHtmlCountList;
 	private ArrayList<String> ranHtmlColorList;
 	private ArrayList<Integer> ranHtmlIconList;
@@ -71,7 +71,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		ranUrlNumList = new ArrayList<Integer>();
 		getRanArrNum();
 		
-		iconName = ((MainListActivity) context).getImageName();  //獲得已存在cache中的image檔名
+		imageName = ((MainListActivity) context).getImageName();  //獲得已存在cache中的image檔名
 		ranHtmlCountList = new ArrayList<Integer>();			//這3個東西，是用來將 隨機Color & 隨機imageName 存成List，
 		ranHtmlColorList = new ArrayList<String>();				//然後要在某個 isDivisible 的地方顯示用的~
 		ranHtmlIconList = new ArrayList<Integer>();
@@ -314,10 +314,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		htmlSb = new StringBuilder();
 		
-		if (iconName.size() != 0)							//ranIcon = Random for IconList(ImageList)，總值是 0~List.size();
+		if (imageName.size() != 0)							//ranIcon = Random for IconList(ImageList)，總值是 0~List.size();
 		{													//也就是 ranHtmlIconList
 			htmlSb.insert(0,"<b>").append(text1).append("</b>")
-			.append(iconName.get(ranIcon)[0]).append("<font color=").append(ranColor)
+			.append(imageName.get(ranIcon)[0]).append("<font color=").append(ranColor)
 			.append("><i>").append(text2).append("</i></font>");
 		}
 		return Html.fromHtml(htmlSb.toString());				//以上都跟 html 無關！只有這行的 Html.fromHtml() 才跟 html 有關阿~
@@ -346,9 +346,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		{
 			ranColor = 0xff000000 | ran.nextInt(0x00ffffff);
 			ranHtmlColorList.add(String.valueOf(ranColor));
-			if (!iconName.isEmpty())
+			if (!imageName.isEmpty())
 			{
-				ranIconNum = ran.nextInt(iconName.size());
+				ranIconNum = ran.nextInt(imageName.size());
 				ranHtmlIconList.add(ranIconNum);
 			}
 		}

@@ -90,7 +90,7 @@ public class MainListActivity extends Activity
 		numberInput.setFocusable(true);
 		numberInput.setFocusableInTouchMode(true);
 		
-		numberInput.setOnEditorActionListener(new OnEditorActionListener(){
+		numberInput.setOnEditorActionListener(new OnEditorActionListener() {	//監聽EditText，只有在按下Enter or 完成之類的，才會觸發事件
 			@Override
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				String number = numberInput.getText().toString();
@@ -301,15 +301,15 @@ public class MainListActivity extends Activity
 		textInput.setText("");			
 	}
 	
-	OnKeyListener goKey = new OnKeyListener() {
+	OnKeyListener goKey = new OnKeyListener() {						//監聽軟體鍵盤上的動作！
 		@Override
 		public boolean onKey(View v, int keyCode, KeyEvent event) {
 			// TODO Auto-generated method stub
-			if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+			if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {	//如果按下 Enter or 完成 之類的...
 				
     			InputMethodManager input = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     			
-    			if (input.isActive()) {
+    			if (input.isActive()) {							//會觸發 sendClick() 這個 Function
     				sendClick(v);
     				//input.hideSoftInputFromWindow(v.getApplicationWindowToken(), 0);
     			}
@@ -319,7 +319,7 @@ public class MainListActivity extends Activity
 		}
     };
     
-    private int getPixels(int dipValue)
+    private int getPixels(int dipValue)			//自行定義一個 Dip To Pixels 的功能！
     {
     	Resources res = getResources();
     	int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, res.getDisplayMetrics());
@@ -328,14 +328,14 @@ public class MainListActivity extends Activity
     }
     
     @SuppressWarnings("deprecation")
-	public void createIconBtn()
+	public void createImageBtn()			//從 image_cache 中，動態建立 ImageButton
     {
-    	WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-    	int screenWidth = wm.getDefaultDisplay().getWidth();
+    	WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);	//獲得 WindowManager 的服務
+    	int screenWidth = wm.getDefaultDisplay().getWidth();		//取得目前螢幕的寬度(Pixels)
     	
     	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(getPixels(40), getPixels(40), Gravity.CENTER);
-    	
-    	iconsLayout.removeAllViews();
+    												//若直接輸入數字的話，單位會是Dip，因此要用 getPixels() 將單位轉換為Pixels，
+    	iconsLayout.removeAllViews();				//在計算物件在螢幕中的空間關係，才會很準確阿~~
     	Drawable iconDraw;
     	
     	String SDPath = Environment.getExternalStorageDirectory().getPath();
@@ -343,14 +343,14 @@ public class MainListActivity extends Activity
     	StringBuilder imagePathSb = new StringBuilder();
     	String imagePath = imagePathSb.append(SDPath).append("/").append(cacheDir).append("/").toString();
     	
-    	LinearLayout iconLayout = new LinearLayout(this);
+    	LinearLayout iconLayout = new LinearLayout(this);		//除了 new ImageButon 之外，也要 new LinearLayout 喔！
 		iconLayout.setLayoutParams(new LinearLayout.LayoutParams
 				(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
     	
-    	int btnWidthSum = 0;
+    	int btnWidthSum = 0;						// 先定義一個空的 int，待會要用來累加ImageButton的寬度
     	boolean isFirstCreate = true;
     	
-    	for (String[] imgName: getImageName())
+    	for (String[] imgName: getImageName())		//根據 getImageName() 中獲得的size來run迴圈
     	{
     		iconDraw = Drawable.createFromPath(imagePath + imgName[1]);
     		
@@ -358,29 +358,29 @@ public class MainListActivity extends Activity
     		imgBtn.setImageDrawable(iconDraw);
     		imgBtn.setScaleType(ScaleType.CENTER_CROP);
     		imgBtn.setLayoutParams(params);
-    		imgBtn.setTag(imgName[0]);
+    		imgBtn.setTag(imgName[0]);			// setTag() 根本只有好用阿!!!
     		
-    		btnWidthSum += imgBtn.getLayoutParams().width;
+    		btnWidthSum += imgBtn.getLayoutParams().width;	//藉由 .getLayoutParams().width 獲得 imgBtn 的寬度，然後加到 btnWidthSum 中！
     		Log.i("BtnWidth!", imgBtn.getLayoutParams().width + " of " + btnWidthSum);
     		
-    		if (isFirstCreate)
+    		if (isFirstCreate)				//由於並不是每圈都要加入 new Layout，所以要有判斷式阿~
     		{
     			iconLayout.addView(imgBtn);
-    			iconsLayout.addView(iconLayout);
+    			iconsLayout.addView(iconLayout);	//如果是第一圈 (isFirstCreate)，就先無條件的加入一次 Layout
     			isFirstCreate = false;
     		}
-    		else if (btnWidthSum <= screenWidth)
+    		else if (btnWidthSum <= screenWidth)	//如果 imgBtn 所累加的寬度，還沒大於螢幕寬度的話，就繼續在 add 在原本的Layout中
     		{
     			iconLayout.addView(imgBtn);
     		}
-    		else if (btnWidthSum > screenWidth)
+    		else if (btnWidthSum > screenWidth)		//反之如果 imgBtn 所累加的寬度已大於螢幕了，就再 new 一個Layout出來~
     		{
     			iconLayout = new LinearLayout(this);
     			iconLayout.setLayoutParams(new LinearLayout.LayoutParams
     					(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
     			iconLayout.addView(imgBtn);
     			iconsLayout.addView(iconLayout);
-    			btnWidthSum = 0;
+    			btnWidthSum = 0;					//然後然後，要記得把 btnWidthSum 歸零以重新計算喔！
     			//shortMessage("OOPS~~~~~~~~");
     		}
     		imgBtn.setOnClickListener(btnClick);
@@ -393,39 +393,32 @@ public class MainListActivity extends Activity
     	}
     };
 	
-    @SuppressWarnings("deprecation")
-	public void createIcons()
+	public void createIconsBtn()		//用Resources中的Drawable，來動態建立ImageButton
     {
-    	WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-    	int screenWidth = wm.getDefaultDisplay().getWidth();
-    	
+    	smileyIconLayout.removeAllViews();
     	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(getPixels(40), getPixels(40), Gravity.CENTER);
-    	LinearLayout smileyLayout = (LinearLayout) findViewById(R.id.smileysIconLayout);
+    										//與上面的 createImageBtn 都差不多阿~
+    	int iconRes;
     	
-    	R.drawable drawableRes = new R.drawable();
-    	
-    	Field[] drawables = R.drawable.class.getFields();
-    	
-    	for (Field f: drawables)
+    	for (String[] icons: getSmileyName())		//根據 getSmileyIcons() 的size來run~
     	{
-    		try
-    		{
-    			ImageButton imgBtn = new ImageButton(this);
-    			imgBtn.setImageResource(f.getInt(drawableRes));
-    			imgBtn.setScaleType(ScaleType.CENTER_CROP);
-    			imgBtn.setLayoutParams(params);
-    			imgBtn.setTag(f.getName());
-    			Log.i("ImageBtn FieldName", f.getName());
-    			smileyLayout.addView(imgBtn);
-    			smileyLayout.setVisibility(View.VISIBLE);
-    		}
-    		catch (Exception e) {
-    			e.printStackTrace();
-    			Log.e("Drawable Not Found!!", e.getMessage().toString());
-    		}
+    		iconRes = Integer.parseInt(icons[1]);
+    		ImageButton iconBtn = new ImageButton(this);
+    		iconBtn.setImageResource(iconRes);
+    		iconBtn.setScaleType(ScaleType.CENTER_CROP);
+    		iconBtn.setLayoutParams(params);
+    		iconBtn.setTag(icons[0]);
+    		iconBtn.setOnClickListener(btnClick);
+    		smileyIconLayout.addView(iconBtn);
     	}
     }
-    
+	private String withSlash(String text)		//一個將 String 的前後都加上 "/" 的小功能~
+	{
+		sb = new StringBuilder();
+		sb.append("/").append(text).append("/");
+		return sb.toString();
+	}
+	
     public void setSmileyText(String smileyText)
     {
     	SmileysParser.init(this);							//每次 setSmileyText 的時候，都讓 SmileysParser 重新 init 一次，
@@ -440,6 +433,47 @@ public class MainListActivity extends Activity
     	
     	textInput.setText(parser.addSmileySpans(sb.toString()));
     	textInput.setSelection(index + smileyText.length());
+    }
+    
+    public HashMap<String, Integer> getSmileyMap()		//要丟給 SmileysParser 吃，所以要產生 HashMap
+    {
+    	HashMap<String, Integer> iconNameItem = new HashMap<String, Integer>();
+    	
+    	for (String[] icons: getSmileyName())
+    	{
+    		iconNameItem.put(icons[0], Integer.parseInt(icons[1]));
+    	}
+    	return iconNameItem;
+    }
+    
+    public List<String[]> getSmileyName()		//將 Resources 中的 Drawable 撈出來，並建立在 List<String[]> 中
+    {
+    	List<String[]> smileyIconList = new ArrayList<String[]>();
+    	String resStr;
+    	
+    	R.drawable drawable = new R.drawable();
+    	Field[] drawRes = R.drawable.class.getFields();
+    	
+    	for (Field f: drawRes)
+    	{
+    		try
+    		{
+    			if (f.getName().contains("smiley"))		//藉由判斷名稱，來篩選出我們要的 Drawable
+    			{
+    				resStr = String.valueOf(f.getInt(drawable));
+    				smileyIconList.add(createStringArr(withSlash(f.getName()), resStr));
+    			}						//將 Drawable 的資訊放到 smileyIconList 中，格式為：/(DrawableName)/[0]，(DrawableID)[1]
+    		}
+    		catch (IllegalArgumentException e) {
+    			e.printStackTrace();
+    			Log.e("getSmileyFailed!", e.getMessage().toString());
+    		}
+    		catch (IllegalAccessException e) {
+    			e.printStackTrace();
+    			Log.e("getSmileyFailed!", e.getMessage().toString());
+    		}
+    	}
+    	return smileyIconList;
     }
     
     public HashMap<String, String> getImageMap()		//由於 SmileyParser 是吃 HashMap 來分析資料，所以這裡也把 imageNames 做成HashMap！
@@ -488,7 +522,7 @@ public class MainListActivity extends Activity
     			Log.i("imgName", imgName);
     			Log.i("imgFullName", imgFullName);
 
-    			imageNameList.add(createListName(imgName, imgFullName)); //將 已修改過的檔名[0] & 完整檔名[1] add 進 imageNameList 中！
+    			imageNameList.add(createStringArr(imgName, imgFullName)); //將 已修改過的檔名[0] & 完整檔名[1] add 進 imageNameList 中！
     		}
     		return imageNameList;
     	}
@@ -498,7 +532,7 @@ public class MainListActivity extends Activity
     	}
     	return null;
     }
-    private String[] createListName(String imgName, String imgFullName)		//產生 String[] 的一個小東東~
+    private String[] createStringArr(String imgName, String imgFullName)		//產生 String[] 的一個小東東~
     {
     	String[] listName = {imgName, imgFullName};
     	return listName;
@@ -521,7 +555,8 @@ public class MainListActivity extends Activity
     	iconsLayout.setVisibility(View.VISIBLE);
     	smileyIconLayout.setVisibility(View.VISIBLE);
     	showIconBtn.setImageResource(android.R.drawable.ic_menu_more);
-    	createIconBtn();
+    	//createImageBtn();
+    	createIconsBtn();
     }
     private void hideIcons()
     {
@@ -574,7 +609,7 @@ public class MainListActivity extends Activity
 			break;
 		
 		case R.id.menu_test:
-			createIcons();
+			//createIconsBtn();
 			break;
 		}
 		return true;
