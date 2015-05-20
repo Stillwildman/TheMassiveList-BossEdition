@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.vincent.massivelist"
+    package="com.vincent.massivelist_BE"
     android:versionCode="4"
     android:versionName="@string/Version" >
 
@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.vincent.massivelist.MainListActivity"
+            android:name="com.vincent.massivelist_BE.MainListActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" >
