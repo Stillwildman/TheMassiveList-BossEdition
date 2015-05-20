@@ -141,31 +141,6 @@ public class SmileysParser
 			ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
 			builder.setSpan(imageSpan, smileyMatcher.start(), smileyMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		}
-		/*
-		for (String[] s: imageNames)
-		{
-			if (textString.contains(s[0]))
-			{
-				Matcher imgMatcher = imgMapPattern.matcher(text);
-
-				while (imgMatcher.find())
-				{
-					String imgFileName = imgMap.get(imgMatcher.group());
-					//Log.d("imgMap~~~~~", imgFileName);
-
-					Drawable resDraw = Drawable.createFromPath(SDPath +"/" + cacheDir + "/" + imgFileName);
-					resDraw.setBounds(0, 0, 50, 50);
-
-					//Bitmap bitImg = compressImage(drawableToBitmap(resDraw));
-
-					ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
-					builder.setSpan(imageSpan, imgMatcher.start(), imgMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-					Log.i("ImgMatcher~~", "Start: " + imgMatcher.start() + " End: " + imgMatcher.end());
-				}
-				
-			}
-		}
-		*/
 		if (!imgMapPattern.toString().equals("Image Files Empty!"))
 		{
 			Matcher imgMatcher = imgMapPattern.matcher(text);
@@ -175,9 +150,8 @@ public class SmileysParser
 				String imgFileName = imgMap.get(imgMatcher.group());
 				//Log.d("imgMap~~~~~", imgFileName);
 
-				Drawable resDraw = Drawable.createFromPath(SDPath +"/" + cacheDir + "/" + imgFileName);
-				if (resDraw != null)
-					resDraw.setBounds(0, 0, 50, 50);
+				Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
+				resDraw.setBounds(0, 0, 50, 50);
 
 				//Bitmap bitImg = compressImage(drawableToBitmap(resDraw));
 
@@ -196,7 +170,6 @@ public class SmileysParser
 				builder.setSpan(imageSpan, textString.indexOf("/"), textString.lastIndexOf("/")+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
 		}
-
 		return builder;
 	}
 	

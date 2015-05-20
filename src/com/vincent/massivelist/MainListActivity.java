@@ -1,6 +1,7 @@
 package com.vincent.massivelist;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +166,7 @@ public class MainListActivity extends Activity
 			for (String s: urlTempString)
 			{
 				urlSb = new StringBuilder(s);
-				urlSb.insert(0, "http://60.199.201.66/");		//獲得的檔名為 images/(fileName)，因此在前面再加上Server的路徑~
+				urlSb.insert(0, "http://60.199.201.66/");		//上面獲得的檔名為 images/(fileName)，因此在前面再加上Server的路徑~
 				urlTempList.add(urlSb.toString());
 			}
 			urlTempString = new String[urlTempList.size()];		//將 ArrayList 轉為 String[]
@@ -392,31 +393,37 @@ public class MainListActivity extends Activity
     	}
     };
 	
-    public void smileyClick(View v)			//此處的 v.getId() 得到的是 imageButton 的id，而非 Drawable 的！
+    @SuppressWarnings("deprecation")
+	public void createIcons()
     {
-    	final int[] iconIDs =
-    		{
-    			R.id.imageHappy,
-    			R.id.imageLove,
-    			R.id.imageCool,
-    			R.id.imageWink,
-    			R.id.imageSad,
-    			R.id.imageDead,
-    		};
-    	String[] smileyTextArr = getResources().getStringArray(R.array.smileys_array);
+    	WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+    	int screenWidth = wm.getDefaultDisplay().getWidth();
     	
-    	if (v.getId() == iconIDs[0])
-    		setSmileyText(smileyTextArr[0]);
-    	if (v.getId() == iconIDs[1])
-    		setSmileyText(smileyTextArr[1]);
-    	if (v.getId() == iconIDs[2])
-    		setSmileyText(smileyTextArr[2]);
-    	if (v.getId() == iconIDs[3])
-    		setSmileyText(smileyTextArr[3]);
-    	if (v.getId() == iconIDs[4])
-    		setSmileyText(smileyTextArr[4]);
-    	if (v.getId() == iconIDs[5])
-    		setSmileyText(smileyTextArr[5]);
+    	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(getPixels(40), getPixels(40), Gravity.CENTER);
+    	LinearLayout smileyLayout = (LinearLayout) findViewById(R.id.smileysIconLayout);
+    	
+    	R.drawable drawableRes = new R.drawable();
+    	
+    	Field[] drawables = R.drawable.class.getFields();
+    	
+    	for (Field f: drawables)
+    	{
+    		try
+    		{
+    			ImageButton imgBtn = new ImageButton(this);
+    			imgBtn.setImageResource(f.getInt(drawableRes));
+    			imgBtn.setScaleType(ScaleType.CENTER_CROP);
+    			imgBtn.setLayoutParams(params);
+    			imgBtn.setTag(f.getName());
+    			Log.i("ImageBtn FieldName", f.getName());
+    			smileyLayout.addView(imgBtn);
+    			smileyLayout.setVisibility(View.VISIBLE);
+    		}
+    		catch (Exception e) {
+    			e.printStackTrace();
+    			Log.e("Drawable Not Found!!", e.getMessage().toString());
+    		}
+    	}
     }
     
     public void setSmileyText(String smileyText)
@@ -567,7 +574,7 @@ public class MainListActivity extends Activity
 			break;
 		
 		case R.id.menu_test:
-			//createIconBtn();
+			createIcons();
 			break;
 		}
 		return true;
