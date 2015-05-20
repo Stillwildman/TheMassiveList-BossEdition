@@ -35,41 +35,37 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	SmileysParser parser;
 	
-	//private Bitmap Icon;
+	private ArrayList<Integer> ranSmileyNumList;			//這裡的 NumList 總長度都為 getGroupCount()，
+	//private ArrayList<Integer> ranUrlNumList;				//裡面的值為 0 ~ .size() or .length()
+	//ImageLoader imageLoader;
 	
-	private String[] url_array;
-	private ArrayList<Integer> ranUrlNumList;
-	ImageLoader imageLoader;
-	//GetWebImg webImg;
-	
+	private List<String[]> smileyName;
 	private List<String[]> imageName;
+	
 	private ArrayList<Integer> ranHtmlCountList;
 	private ArrayList<String> ranHtmlColorList;
 	private ArrayList<Integer> ranHtmlIconList;
 	
-	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild, String[] urlList)
+	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild)
 	{
 		this.context = context;
 		this.listGroup = listGroup;
 		this.listChild = listChild;
-		/*
-		Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.coffee_icon);
-		Icon = icon;
-		*/
+		
+		SmileysParser.init(context);
+		parser = SmileysParser.getInstance();
+		//BitmapFactory.decodeResource(context.getResources(), R.drawable.coffee_icon);
+		
 		inflater = LayoutInflater.from(context);
-		imageLoader = new ImageLoader(context.getApplicationContext());
-		//webImg = new GetWebImg(context);
+		//imageLoader = new ImageLoader(context.getApplicationContext());
+		
+		smileyName = ((MainListActivity) context).getSmileyName();
+		ranSmileyNumList = getRanSmileyNum();
 		
 		ranCount = (int) (getGroupCount() * 0.5);
 		setRanColor();
 		
-		SmileysParser.init(context);
-		parser = SmileysParser.getInstance();
-		
-		//url_array = context.getResources().getStringArray(R.array.url_array);		//獲得本機資源裡的 url_array
-		this.url_array = urlList;
-		ranUrlNumList = new ArrayList<Integer>();
-		getRanArrNum();
+		//ranUrlNumList = getRanUrlNum();
 		
 		imageName = ((MainListActivity) context).getImageName();  //獲得已存在cache中的image檔名
 		ranHtmlCountList = new ArrayList<Integer>();			//這3個東西，是用來將 隨機Color & 隨機imageName 存成List，
@@ -104,7 +100,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		if (convertView == null)
 		{
-			//LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = inflater.inflate(R.layout.ex_group, null);
 			
 			holder = new ViewHolder();
@@ -116,35 +111,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			convertView.setTag(holder);
 		} else
 			holder = (ViewHolder) convertView.getTag();
+
 		
-		try
-		{
-			imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
-
-			/*	//(The "GetWebImg" way, from PTT)
-				if (webImg.IsCache(url_array[ranUrlNumList.get(groupPosition)]) == false)
-					webImg.LoadUrlPic(url_array[ranUrlNumList.get(groupPosition)], handler);
-				else if (webImg.IsDownLoadFine(url_array[ranUrlNumList.get(groupPosition)]) == true)
-				{
-					holder.image.setImageBitmap(webImg.getImg(url_array[ranUrlNumList.get(groupPosition)]));
-					holder.loadingImage.setVisibility(View.GONE);
-					holder.image.setVisibility(View.VISIBLE);
-				} else {}
-			 */
-			//holder.image.setImageBitmap(Icon);
-		}
-		catch (OutOfMemoryError e) {
-			e.printStackTrace();
-			//Icon.recycle();
-			Log.e("OOM Oops!", e.getMessage().toString());
-			Log.e("Memory","Out!");
-		} catch (Exception e) {
-			e.printStackTrace();
-			Log.e("Oops!", e.getMessage().toString());
-		} finally {
-			notifyDataSetChanged();
-		}
-
+		holder.image.setImageResource(getSmileyResByGroupPosition(groupPosition));
+		
 		if (holder.image.getDrawable() != null)
 		{
 			holder.loadingImage.setVisibility(View.GONE);
@@ -198,19 +168,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		((MainListActivity) context).showMemory();
 		return convertView;
 	}
-	/*
-	@SuppressLint("HandlerLeak")
-	Handler handler = new Handler()		//告訴BaseAdapter資料已經更新了 (給 GetWebImg 用的 Handler)
-	{
-		@Override
-		public void handleMessage(Message msg)
-		{
-			Log.d("Handler", "notifyDataSetChanged");
-			notifyDataSetChanged();
-			super.handleMessage(msg);
-		}
-	};
-	 */
+	
 	@Override
 	public int getChildrenCount(int groupPosition) {
 		// TODO Auto-generated method stub
@@ -323,14 +281,34 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		return Html.fromHtml(htmlSb.toString());				//以上都跟 html 無關！只有這行的 Html.fromHtml() 才跟 html 有關阿~
 	}
 	
-	private void getRanArrNum()
+	private ArrayList<Integer> getRanSmileyNum()
 	{
+		ran = new Random();
+		ArrayList<Integer> ranSmileyList = new ArrayList<Integer>();
+		
 		for (int i = 0; i < getGroupCount(); i++)
-		{
-			ranUrlNumList.add(ran.nextInt(url_array.length));
-		}
+			ranSmileyList.add(ran.nextInt(smileyName.size()));
+		
+		return ranSmileyList;
 	}
 	
+	private Integer getSmileyResByGroupPosition(int position)
+	{
+		String resStr = smileyName.get(ranSmileyNumList.get(position))[1];
+		return Integer.parseInt(resStr);
+	}
+	
+	/*
+	private ArrayList<Integer> getRanUrlNum()
+	{
+		ArrayList<Integer> ranUrlList = new ArrayList<Integer>();
+		for (int i = 0; i < getGroupCount(); i++)
+		{
+			ranUrlList.add(ran.nextInt(url_array.length));
+		}
+		return ranUrlList;
+	}
+	*/
 	private void setRanHtmlAtDivisible(int position)
 	{
 		int total = getGroupCount() / position;

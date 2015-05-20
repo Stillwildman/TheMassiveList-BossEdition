@@ -109,6 +109,7 @@ public class SmileysParser
 		String cacheDir = context.getResources().getString(R.string.cache_dirname);
 		
 		Matcher smileyMatcher = smileyMapPattern.matcher(text);
+		String textString = text.toString();
 		
 		while (smileyMatcher.find())
 		{
@@ -126,7 +127,6 @@ public class SmileysParser
 			while (imgMatcher.find())
 			{
 				String imgFileName = imgMap.get(imgMatcher.group());
-				//Log.d("imgMap~~~~~", imgFileName);
 
 				Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
 				resDraw.setBounds(0, 0, 50, 50);
@@ -136,17 +136,13 @@ public class SmileysParser
 				ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
 				builder.setSpan(imageSpan, imgMatcher.start(), imgMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
-		} else
+		} else if (textString.contains("/"))
 		{
-			String textString = text.toString();
-			if (textString.contains("/"))
-			{
-				Log.i("EmptyPattern~~", textString + "\n" + textString.indexOf("/") + " " + textString.lastIndexOf("/"));
-				Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
-				waitDraw.setBounds(0, 0, 50, 50);
-				ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
-				builder.setSpan(imageSpan, textString.indexOf("/"), textString.lastIndexOf("/")+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			}
+			Log.i("EmptyPattern~~", textString + "\n" + textString.indexOf("/") + " " + textString.lastIndexOf("/"));
+			Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
+			waitDraw.setBounds(0, 0, 50, 50);
+			ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
+			builder.setSpan(imageSpan, textString.indexOf("/"), textString.lastIndexOf("/")+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		}
 		return builder;
 	}

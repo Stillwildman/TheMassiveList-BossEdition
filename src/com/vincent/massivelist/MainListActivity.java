@@ -131,7 +131,7 @@ public class MainListActivity extends Activity
 		
 		private Dialog dialog;
 		private TextView loadingText;
-		private String[] urlList;
+		//private String[] urlList;
     	//InputMethodManager input;
 		
 		@SuppressLint("InflateParams") @Override
@@ -159,6 +159,7 @@ public class MainListActivity extends Activity
 		@Override
 		protected Void doInBackground(String... params)
 		{
+			/*
 			GetStringByUrl urlString = new GetStringByUrl(getString(R.string.ImageUrl));	//從Testing server上取得Image URL的清單
 			String[] urlTempString = urlString.getString().split(",");		//URL清單中的每個檔名，是以","做區隔，所以在這裡將他分割為Array
 			StringBuilder urlSb;
@@ -171,7 +172,7 @@ public class MainListActivity extends Activity
 			}
 			urlTempString = new String[urlTempList.size()];		//將 ArrayList 轉為 String[]
 			urlList = urlTempList.toArray(urlTempString);
-			
+			*/
 			count = Integer.parseInt(params[0]);
 			text = params[1];
 
@@ -209,12 +210,13 @@ public class MainListActivity extends Activity
 					if (i == ranNumList.get(j))							//如果該次的 i 等於ranNumList其中一個數字的話...
 					{													//由於 i 是從 1 開始去run，所以一定是從ranNumList中最小的值開始抓到
 						sb = new StringBuilder();			
-						Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
+						//Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
 																		//所以在這裡也順便給 ranNumList 給做了排序...
 																		//意外發現 Bubble Sort 之外的另一個排序法阿！
 						for (int k = 0; k < ranMultiList.get(j); k++)
 						{
-							sb.append("This is the Chosen One! ");		//看該次的ranMultiList的值是多少，就run幾次
+							sb.append("This is the Chosen One! ").append(getSmileyName().get(ran.nextInt(getSmileyName().size()))[0]);
+							//看該次的ranMultiList的值是多少，就run幾次
 						}
 						listGroupItem.put("groupSample", sb.toString());	//把該次的內容put進hashMap裡，覆蓋原本put的值
 					}
@@ -236,7 +238,7 @@ public class MainListActivity extends Activity
 		}
 		protected void onPostExecute(Void result)
 		{
-			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild, urlList);
+			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild);
 			//exList.setIndicatorBounds(0,100);
 			exList.setAdapter(exAdapter);
 			dialog.dismiss();
@@ -335,7 +337,7 @@ public class MainListActivity extends Activity
     	
     	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(getPixels(40), getPixels(40), Gravity.CENTER);
     												//若直接輸入數字的話，單位會是Dip，因此要用 getPixels() 將單位轉換為Pixels，
-    	iconsLayout.removeAllViews();				//在計算物件在螢幕中的空間關係，才會很準確阿~~
+    	iconsLayout.removeAllViews();				//在計算物件在螢幕中的空間關係時，才會很準確阿~~
     	Drawable iconDraw;
     	
     	String SDPath = Environment.getExternalStorageDirectory().getPath();
@@ -412,10 +414,10 @@ public class MainListActivity extends Activity
     		smileyIconLayout.addView(iconBtn);
     	}
     }
-	private String withSlash(String text)		//一個將 String 的前後都加上 "/" 的小功能~
+	private String withSymbol(String text)		//一個將 String 的前後都加上指定符號的小功能~
 	{
 		sb = new StringBuilder();
-		sb.append("/").append(text).append("/");
+		sb.append("#").append(text).append("#");
 		return sb.toString();
 	}
 	
@@ -437,7 +439,7 @@ public class MainListActivity extends Activity
     
     public HashMap<String, Integer> getSmileyMap()		//要丟給 SmileysParser 吃，所以要產生 HashMap
     {
-    	HashMap<String, Integer> iconNameItem = new HashMap<String, Integer>();
+    	HashMap<String, Integer> iconNameItem = new HashMap<String, Integer>(getSmileyName().size());
     	
     	for (String[] icons: getSmileyName())
     	{
@@ -461,7 +463,7 @@ public class MainListActivity extends Activity
     			if (f.getName().contains("smiley"))		//藉由判斷名稱，來篩選出我們要的 Drawable
     			{
     				resStr = String.valueOf(f.getInt(drawable));
-    				smileyIconList.add(createStringArr(withSlash(f.getName()), resStr));
+    				smileyIconList.add(createStringArr(withSymbol(f.getName()), resStr));
     			}						//將 Drawable 的資訊放到 smileyIconList 中，格式為：/(DrawableName)/[0]，(DrawableID)[1]
     		}
     		catch (IllegalArgumentException e) {
@@ -476,7 +478,7 @@ public class MainListActivity extends Activity
     	return smileyIconList;
     }
     
-    public HashMap<String, String> getImageMap()		//由於 SmileyParser 是吃 HashMap 來分析資料，所以這裡也把 imageNames 做成HashMap！
+    public HashMap<String, String> getImageMap()		//由於 SmileyParser 是吃 HashMap 來分析資料，所以這裡也把 imageNames 做成 HashMap！
     {
     	HashMap<String, String> imgNameItem = new HashMap<String, String>(getImageName().size());
     	String imgName;
