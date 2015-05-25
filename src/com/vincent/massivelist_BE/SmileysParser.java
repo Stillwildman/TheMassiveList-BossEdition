@@ -5,11 +5,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vincent.massivelist_BE.R;
-
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
@@ -94,7 +92,6 @@ public class SmileysParser
 			{
 				patternString.append(Pattern.quote(imgNames[0]));
 				patternString.append('|');
-				Log.i("PatternImgMap", imgNames[0]);
 			}
 			patternString.replace(patternString.length() - 1, patternString.length(), ")");
 			
@@ -103,43 +100,39 @@ public class SmileysParser
 		return Pattern.compile("Image Files Empty!");
 	}
 
-	public CharSequence addSmileySpans(CharSequence text)
+	@SuppressWarnings("deprecation")
+	public CharSequence addIconSpans(CharSequence text, Bitmap images)
 	{
 		SpannableStringBuilder builder = new SpannableStringBuilder(text);
 		
-		String SDPath = Environment.getExternalStorageDirectory().getPath();
-		String cacheDir = context.getResources().getString(R.string.cache_dirname);
-		
 		Matcher smileyMatcher = smileyMapPattern.matcher(text);
-		String textString = text.toString();
 		
 		while (smileyMatcher.find())
 		{
 			int resId = smileyMap.get(smileyMatcher.group());
 			Drawable resDraw = context.getResources().getDrawable(resId);
 			resDraw.setBounds(0, 0, 50, 50);
-			
+
 			ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
 			builder.setSpan(imageSpan, smileyMatcher.start(), smileyMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		}
-		
+
+		String textString = text.toString();
+
 		if (!imgMapPattern.toString().equals("Image Files Empty!"))
 		{
 			Matcher imgMatcher = imgMapPattern.matcher(text);
-
+			
 			while (imgMatcher.find())
 			{
-				String imgFileName = imgMap.get(imgMatcher.group());
-
-				Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
-				resDraw.setBounds(0, 0, 50, 50);
+				Log.d("ImageMatched!!!", ""+imgMatcher.toString());
 
 				//Bitmap bitImg = compressImage(drawableToBitmap(resDraw));
-
-				ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
+				ImageSpan imageSpan = new ImageSpan(images, ImageSpan.ALIGN_BOTTOM); 
 				builder.setSpan(imageSpan, imgMatcher.start(), imgMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
-		} else if (textString.contains("/"))
+			
+		} else if (textString.contains("/") && !textString.contains("//"))
 		{
 			Log.i("EmptyPattern~~", textString + "\n" + textString.indexOf("/") + " " + textString.lastIndexOf("/"));
 			Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
@@ -149,6 +142,23 @@ public class SmileysParser
 		}
 		return builder;
 	}
+	
+	public CharSequence addWaitSpans(CharSequence text, String extension)
+	{
+		SpannableStringBuilder builder = new SpannableStringBuilder(text);
+		String textString = text.toString();
+		
+		Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
+		waitDraw.setBounds(0, 0, 50, 50);
+		
+		ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
+		builder.setSpan(imageSpan, textString.indexOf("http"),textString.indexOf(extension)+4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		
+		Log.d("FUCK SPANS!!!", textString.substring(textString.indexOf("http"), textString.indexOf(extension)+4));
+		
+		return builder;
+	}
+	
 	/*
 	private static Bitmap drawableToBitmap(Drawable draw)
 	{

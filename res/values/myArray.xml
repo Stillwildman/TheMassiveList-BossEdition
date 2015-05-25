@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    
-	    <array name="smileys_array">
-	    		<item>/happy</item>                
-                <item>/love</item>
-                <item>/cool</item>        
-                <item>/wink</item>                        
-                <item>/sad</item>                
-                <item>/dead</item>
-	    </array>
 	    
 	    <array name="url_array">
 	        <item>http://chat.sclub.cc/images/share_icon_blogger.png</item>
@@ -26,6 +17,9 @@
 	        <item>http://60.199.201.66/images/08.png</item>
 	        <item>http://60.199.201.66/images/09.png</item>
 	        <item>http://60.199.201.66/images/10.png</item>
+	        <item>http://www.castlemalting.com/Publications/Recipes/Images/glass_rye_whisky_256x256.png</item>
+	        <item>http://www.guiaepicureo.com.ar/images/banner_whisky.gif</item>
+	        <item>http://sr1.wine-searcher.net/images/labels/06/93/10450693.jpg</item>
 	    </array>
 
 </resources>

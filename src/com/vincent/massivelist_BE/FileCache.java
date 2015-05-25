@@ -2,9 +2,6 @@ package com.vincent.massivelist_BE;
 
 import java.io.File;
 import java.net.URLEncoder;
-
-import com.vincent.massivelist_BE.R;
-
 import android.content.Context;
 import android.os.Environment;
 

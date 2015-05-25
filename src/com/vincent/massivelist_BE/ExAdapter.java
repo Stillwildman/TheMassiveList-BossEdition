@@ -1,6 +1,7 @@
 package com.vincent.massivelist_BE;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -9,7 +10,11 @@ import com.vincent.massivelist_BE.R;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -36,39 +41,46 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private StringBuilder htmlSb;
 	
 	SmileysParser parser;
+	private Drawable waitIcon;
+	private HashMap<String, Bitmap> imgMap;
 	
-	private ArrayList<Integer> ranSmileyNumList;			//這裡的 NumList 總長度都為 getGroupCount()，
-	//private ArrayList<Integer> ranUrlNumList;				//裡面的值為 0 ~ .size() or .length()
-	//ImageLoader imageLoader;
+	private String[] url_array;
+	private ArrayList<Integer> ranUrlNumList;
+	ImageLoader imageLoader;
+	FileCache fileCache;
+	//GetWebImg webImg;
 	
-	private List<String[]> smileyName;
-	private List<String[]> imageName;
-	
+	private List<String[]> iconName;
 	private ArrayList<Integer> ranHtmlCountList;
 	private ArrayList<String> ranHtmlColorList;
 	private ArrayList<Integer> ranHtmlIconList;
 	
-	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild)
+	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild, String[] urlList)
 	{
 		this.context = context;
 		this.listGroup = listGroup;
 		this.listChild = listChild;
 		
-		SmileysParser.init(context);
-		parser = SmileysParser.getInstance();
+		waitIcon = context.getResources().getDrawable(R.drawable.wait01);
+		waitIcon.setBounds(0, 0, 50, 50);
 		
 		inflater = LayoutInflater.from(context);
-		//imageLoader = new ImageLoader(context.getApplicationContext());
-		
-		smileyName = ((MainListActivity) context).getSmileyName();
-		ranSmileyNumList = getRanSmileyNum();
+		imageLoader = new ImageLoader(context.getApplicationContext());
+		fileCache = new FileCache(context);
+		//webImg = new GetWebImg(context);
+		imgMap = new HashMap<String, Bitmap>();
 		
 		ranCount = (int) (getGroupCount() * 0.5);
 		setRanColor();
 		
-		//ranUrlNumList = getRanUrlNum();
+		SmileysParser.init(context);
+		parser = SmileysParser.getInstance();
 		
-		imageName = ((MainListActivity) context).getImageName();  //獲得已存在cache中的image檔名
+		this.url_array = urlList;
+		ranUrlNumList = new ArrayList<Integer>();
+		getRanArrNum();
+		
+		iconName = ((MainListActivity) context).getImageName();  //獲得已存在cache中的image檔名
 		ranHtmlCountList = new ArrayList<Integer>();			//這3個東西，是用來將 隨機Color & 隨機imageName 存成List，
 		ranHtmlColorList = new ArrayList<String>();				//然後要在某個 isDivisible 的地方顯示用的~
 		ranHtmlIconList = new ArrayList<Integer>();
@@ -112,10 +124,73 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			convertView.setTag(holder);
 		} else
 			holder = (ViewHolder) convertView.getTag();
+		
+		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
+		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
+		
+		try
+		{
+			//imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
 
+			/*	//(The "GetWebImg" way, from PTT)
+				if (webImg.IsCache(url_array[ranUrlNumList.get(groupPosition)]) == false)
+					webImg.LoadUrlPic(url_array[ranUrlNumList.get(groupPosition)], handler);
+				else if (webImg.IsDownLoadFine(url_array[ranUrlNumList.get(groupPosition)]) == true)
+				{
+					holder.image.setImageBitmap(webImg.getImg(url_array[ranUrlNumList.get(groupPosition)]));
+					holder.loadingImage.setVisibility(View.GONE);
+					holder.image.setVisibility(View.VISIBLE);
+				} else {}
+			 */
+			//holder.image.setImageBitmap(Icon);
+		}
+		catch (OutOfMemoryError e) {
+			e.printStackTrace();
+			//Icon.recycle();
+			Log.e("OOM Oops!", e.getMessage().toString());
+			Log.e("Memory","Out!");
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e("Oops!", e.getMessage().toString());
+		} finally {
+			notifyDataSetChanged();
+		}
 		
-		holder.image.setImageResource(getSmileyResByGroupPosition(groupPosition));
+		if (groupText.contains("http://") || groupText.contains("https://"))
+		{
+			String imgUrl = getImgUrlString(groupText);
+			
+			if (!imgUrl.equals("Unkonw Image URL!"))
+			{
+				//File imgFile = fileCache.getFile(imgUrl);
+
+				if (imgMap.containsKey(imgUrl)) {
+					try {
+						holder.text1.setText(parser.addIconSpans(groupText, imgMap.get(imgUrl)));
+						Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
+					} catch (Exception e) {
+						//Log.e("ImageFileFielded", e.getMessage().toString());
+						holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+						((MainListActivity) context).shortMessage("Slow Down Please!");
+					}
+				}
+				else {
+					try {
+						//holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+						downloadBitmapByUrl(imgUrl);
+						Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
+					} catch (Exception e) {
+						e.printStackTrace();
+						Log.e("ImageFile", "NO!!!!! What happed~~~");
+					}
+				}
+			} else
+				((MainListActivity) context).shortMessage("Unknow URL!!");
+		} else
+			holder.text1.setText(parser.addIconSpans(groupText, null));
 		
+		holder.text2.setText(groupNumber);
+
 		if (holder.image.getDrawable() != null)
 		{
 			holder.loadingImage.setVisibility(View.GONE);
@@ -136,11 +211,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			}
 			*/
 		}
-		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
-		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
-		holder.text1.setText(parser.addSmileySpans(groupText));
-		
-		holder.text2.setText(parser.addSmileySpans(groupNumber));
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.text2.setTextColor(Color.BLACK);
@@ -169,7 +239,19 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		((MainListActivity) context).showMemory();
 		return convertView;
 	}
-	
+	/*
+	@SuppressLint("HandlerLeak")
+	Handler handler = new Handler()		//告訴BaseAdapter資料已經更新了 (給 GetWebImg 用的 Handler)
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			Log.d("Handler", "notifyDataSetChanged");
+			notifyDataSetChanged();
+			super.handleMessage(msg);
+		}
+	};
+	 */
 	@Override
 	public int getChildrenCount(int groupPosition) {
 		// TODO Auto-generated method stub
@@ -273,43 +355,23 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		htmlSb = new StringBuilder();
 		
-		if (imageName.size() != 0)							//ranIcon = Random for IconList(ImageList)，總值是 0~List.size();
+		if (iconName.size() != 0)							//ranIcon = Random for IconList(ImageList)，總值是 0~List.size();
 		{													//也就是 ranHtmlIconList
 			htmlSb.insert(0,"<b>").append(text1).append("</b>")
-			.append(imageName.get(ranIcon)[0]).append("<font color=").append(ranColor)
+			.append(iconName.get(ranIcon)[0]).append("<font color=").append(ranColor)
 			.append("><i>").append(text2).append("</i></font>");
 		}
 		return Html.fromHtml(htmlSb.toString());				//以上都跟 html 無關！只有這行的 Html.fromHtml() 才跟 html 有關阿~
 	}
 	
-	private ArrayList<Integer> getRanSmileyNum()
+	private void getRanArrNum()
 	{
-		ran = new Random();
-		ArrayList<Integer> ranSmileyList = new ArrayList<Integer>();
-		
-		for (int i = 0; i < getGroupCount(); i++)
-			ranSmileyList.add(ran.nextInt(smileyName.size()));
-		
-		return ranSmileyList;
-	}
-	
-	private Integer getSmileyResByGroupPosition(int position)
-	{
-		String resStr = smileyName.get(ranSmileyNumList.get(position))[1];
-		return Integer.parseInt(resStr);
-	}
-	
-	/*
-	private ArrayList<Integer> getRanUrlNum()
-	{
-		ArrayList<Integer> ranUrlList = new ArrayList<Integer>();
 		for (int i = 0; i < getGroupCount(); i++)
 		{
-			ranUrlList.add(ran.nextInt(url_array.length));
+			ranUrlNumList.add(ran.nextInt(url_array.length));
 		}
-		return ranUrlList;
 	}
-	*/
+	
 	private void setRanHtmlAtDivisible(int position)
 	{
 		int total = getGroupCount() / position;
@@ -325,11 +387,79 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		{
 			ranColor = 0xff000000 | ran.nextInt(0x00ffffff);
 			ranHtmlColorList.add(String.valueOf(ranColor));
-			if (!imageName.isEmpty())
+			if (!iconName.isEmpty())
 			{
-				ranIconNum = ran.nextInt(imageName.size());
+				ranIconNum = ran.nextInt(iconName.size());
 				ranHtmlIconList.add(ranIconNum);
 			}
 		}
 	}
+	
+	private String getImgUrlString(String text)
+	{
+		
+		
+		if (text.contains(".png"))
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".png")+4);
+		if (text.contains(".jpg"))
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".jpg")+4);
+		if (text.contains(".gif"))
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".gif")+4);
+		if (text.contains(".bmp"))
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".bmp")+4);
+		return "Unknow Image URL!";
+	}
+	
+	public void downloadBitmapByUrl(final String urlString)
+	{
+		try
+		{
+			((MainListActivity) context).LoadingShow();
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					Log.d("BitmapDownload", "Downloading~~~~");
+					imageLoader.getBitmap(urlString, false);
+					handler.obtainMessage(0, urlString).sendToTarget();
+				}
+			}).start();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			Log.e("urlMAP~~~~~", "Didn't get the Position!");
+		}
+	}
+	
+	@SuppressLint("HandlerLeak")
+	Handler handler = new Handler()
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			switch (msg.what)
+			{
+			case 0:
+				String urlString = null;
+				if (msg.obj instanceof String)
+					urlString = (String) msg.obj;
+				
+				Log.d("DownloadedURL!", urlString.substring(urlString.lastIndexOf("/")));
+				
+				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);
+				try {
+					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 90, 90);
+					imgMap.put(urlString, imgBitmap);
+				} catch(Exception e) {
+					Log.e("ImageBitmap", "OH!!!!!NO~~~~~~~~~");
+					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");
+				}
+				((MainListActivity) context).LoadingHide();
+				SmileysParser.init(context);
+				parser = SmileysParser.getInstance();
+				notifyDataSetChanged();
+				
+				break;
+			}
+		}
+	};
 }

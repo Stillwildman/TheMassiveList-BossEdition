@@ -17,7 +17,8 @@ import android.app.ActivityManager.MemoryInfo;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -42,6 +43,7 @@ import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageButton;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -69,6 +71,7 @@ public class MainListActivity extends Activity
 	private LinearLayout smileyIconLayout;
 	private ImageButton showIconBtn;
 	private boolean iconShown;
+	private ProgressBar loading;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -124,6 +127,8 @@ public class MainListActivity extends Activity
 		iconsLayout = (LinearLayout) findViewById(R.id.iconsLayout);
 		smileyIconLayout = (LinearLayout) findViewById(R.id.smileysIconLayout);
 		showIconBtn = (ImageButton) findViewById(R.id.showIconBtn);
+		
+		loading = (ProgressBar) findViewById(R.id.loading);
 	}
 	
 	class createAsyncList extends AsyncTask<String, Integer, Void>
@@ -133,7 +138,7 @@ public class MainListActivity extends Activity
 		
 		private Dialog dialog;
 		private TextView loadingText;
-		//private String[] urlList;
+		private String[] urlList;
     	//InputMethodManager input;
 		
 		@SuppressLint("InflateParams") @Override
@@ -175,6 +180,8 @@ public class MainListActivity extends Activity
 			urlTempString = new String[urlTempList.size()];		//將 ArrayList 轉為 String[]
 			urlList = urlTempList.toArray(urlTempString);
 			*/
+			urlList = getResources().getStringArray(R.array.url_array);
+			
 			count = Integer.parseInt(params[0]);
 			text = params[1];
 
@@ -205,7 +212,7 @@ public class MainListActivity extends Activity
 				Map<String, String> listGroupItem = new HashMap<String, String>();
 
 				listGroupItem.put("groupSample", text);		//正常put進固定的內容
-				listGroupItem.put("groupNumber", " "+i);
+				listGroupItem.put("groupNumber", ""+i);
 
 				for (int j = 0; j < ranCount; j++)						//從這裡開始run "ranCount" 次的迴圈
 				{
@@ -217,9 +224,10 @@ public class MainListActivity extends Activity
 																		//意外發現 Bubble Sort 之外的另一個排序法阿！
 						for (int k = 0; k < ranMultiList.get(j); k++)
 						{
-							sb.append("This is the Chosen One! ").append(getSmileyName().get(ran.nextInt(getSmileyName().size()))[0]);
-							//看該次的ranMultiList的值是多少，就run幾次
+							sb.append("This is the Chosen One! ");		//看該次的ranMultiList的值是多少，就run幾次
 						}
+						sb.insert(sb.length()/2, urlList[ran.nextInt(urlList.length)]);
+						
 						listGroupItem.put("groupSample", sb.toString());	//把該次的內容put進hashMap裡，覆蓋原本put的值
 					}
 				}
@@ -240,7 +248,7 @@ public class MainListActivity extends Activity
 		}
 		protected void onPostExecute(Void result)
 		{
-			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild);
+			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild, urlList);
 			//exList.setIndicatorBounds(0,100);
 			exList.setAdapter(exAdapter);
 			dialog.dismiss();
@@ -339,8 +347,8 @@ public class MainListActivity extends Activity
     	
     	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(getPixels(40), getPixels(40), Gravity.CENTER);
     												//若直接輸入數字的話，單位會是Dip，因此要用 getPixels() 將單位轉換為Pixels，
-    	iconsLayout.removeAllViews();				//在計算物件在螢幕中的空間關係時，才會很準確阿~~
-    	Drawable iconDraw;
+    	iconsLayout.removeAllViews();				//在計算物件在螢幕中的空間關係，才會很準確阿~~
+    	Bitmap imgBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.wait01);
     	
     	String SDPath = Environment.getExternalStorageDirectory().getPath();
     	String cacheDir = getResources().getString(R.string.cache_dirname);
@@ -356,16 +364,20 @@ public class MainListActivity extends Activity
     	
     	for (String[] imgName: getImageName())		//根據 getImageName() 中獲得的size來run迴圈
     	{
-    		iconDraw = Drawable.createFromPath(imagePath + imgName[1]);
-    		
+    		try {
+    			imgBitmap = getDecodedBitmap(imagePath + imgName[1], 80, 80);
+    		}catch (Exception e) {
+    			Log.e("CreateBtnFailed!!", e.getMessage().toString());
+    			shortMessage("Buttons Create Failed!");
+    		}
     		ImageButton imgBtn = new ImageButton(this);
-    		imgBtn.setImageDrawable(iconDraw);
+    		imgBtn.setImageBitmap(imgBitmap);
     		imgBtn.setScaleType(ScaleType.CENTER_CROP);
     		imgBtn.setLayoutParams(params);
     		imgBtn.setTag(imgName[0]);			// setTag() 根本只有好用阿!!!
     		
     		btnWidthSum += imgBtn.getLayoutParams().width;	//藉由 .getLayoutParams().width 獲得 imgBtn 的寬度，然後加到 btnWidthSum 中！
-    		Log.i("BtnWidth!", imgBtn.getLayoutParams().width + " of " + btnWidthSum);
+    		//Log.i("BtnWidth!", imgBtn.getLayoutParams().width + " of " + btnWidthSum);
     		
     		if (isFirstCreate)				//由於並不是每圈都要加入 new Layout，所以要有判斷式阿~
     		{
@@ -393,7 +405,7 @@ public class MainListActivity extends Activity
     OnClickListener btnClick = new OnClickListener()
     {
     	public void onClick(View v) {
-    		setSmileyText(v.getTag().toString());
+    		setIconText(v.getTag().toString());
     	}
     };
 	
@@ -404,14 +416,14 @@ public class MainListActivity extends Activity
     										//與上面的 createImageBtn 都差不多阿~
     	int iconRes;
     	
-    	for (String[] icons: getSmileyName())		//根據 getSmileyIcons() 的size來run~
+    	for (String[] smileyName: getSmileyName())		//根據 getSmileyIcons() 的size來run~
     	{
-    		iconRes = Integer.parseInt(icons[1]);
+    		iconRes = Integer.parseInt(smileyName[1]);
     		ImageButton iconBtn = new ImageButton(this);
     		iconBtn.setImageResource(iconRes);
     		iconBtn.setScaleType(ScaleType.CENTER_CROP);
     		iconBtn.setLayoutParams(params);
-    		iconBtn.setTag(icons[0]);
+    		iconBtn.setTag(smileyName[0]);
     		iconBtn.setOnClickListener(btnClick);
     		smileyIconLayout.addView(iconBtn);
     	}
@@ -423,20 +435,25 @@ public class MainListActivity extends Activity
 		return sb.toString();
 	}
 	
-    public void setSmileyText(String smileyText)
+    private void setIconText(String iconText)
     {
     	SmileysParser.init(this);							//每次 setSmileyText 的時候，都讓 SmileysParser 重新 init 一次，
     	SmileysParser parser = SmileysParser.getInstance();	//以用來更新存放images檔名的 HashMap
     	
     	String oriText = textInput.getText().toString();
     	int index = Math.max(textInput.getSelectionStart(), 0);
-    	Log.i("Text Index", "" + index);
+    	Log.i("EditText Index", "" + index);
     	
     	sb = new StringBuilder(oriText);
-    	sb.insert(index, smileyText);
+    	sb.insert(index, iconText);
     	
-    	textInput.setText(parser.addSmileySpans(sb.toString()));
-    	textInput.setSelection(index + smileyText.length());
+    	if (iconText.contains("http://") || iconText.contains("https://"))
+    	{
+    		String imgPathName = getImagePathByName(iconText);
+    		textInput.setText(parser.addIconSpans(sb.toString(), getDecodedBitmap(imgPathName, 80, 80)));
+    	} else
+    		textInput.setText(parser.addIconSpans(sb.toString(), null));
+    	textInput.setSelection(index + iconText.length());
     }
     
     public HashMap<String, Integer> getSmileyMap()		//要丟給 SmileysParser 吃，所以要產生 HashMap
@@ -480,7 +497,7 @@ public class MainListActivity extends Activity
     	return smileyIconList;
     }
     
-    public HashMap<String, String> getImageMap()		//由於 SmileyParser 是吃 HashMap 來分析資料，所以這裡也把 imageNames 做成 HashMap！
+    public HashMap<String, String> getImageMap()		//由於 SmileyParser 是吃 HashMap 來分析資料，所以這裡也把 imageNames 做成HashMap！
     {
     	HashMap<String, String> imgNameItem = new HashMap<String, String>(getImageName().size());
     	String imgName;
@@ -512,17 +529,20 @@ public class MainListActivity extends Activity
     		List<String[]> imageNameList = new ArrayList<String[]>();
 
     		String imgFullName;
-    		StringBuilder imgNameSb;
+    		//StringBuilder imgNameSb;
     		String imgName;
 
     		for (File img: imgCount)
     		{
     			imgFullName = img.getName();	//完整檔案名稱，包含副檔名
+    			/*
     			imgNameSb = new StringBuilder(imgFullName).insert(imgFullName.lastIndexOf("%2F")+3, "/")
     					.insert(imgFullName.lastIndexOf(".")+1, "/");	//修改Image的檔名~
     			imgName = imgNameSb.substring(imgNameSb.lastIndexOf("%2F")+3, imgNameSb.lastIndexOf("."))
     					.replace("%2B", "+");	//新的 image name，含 /../ 不含副檔名
-
+    			*/
+    			imgName = imgFullName.replace("%3A", ":").replace("%2F", "/").replace("%2B", "+");
+    			
     			Log.i("imgName", imgName);
     			Log.i("imgFullName", imgFullName);
 
@@ -545,28 +565,27 @@ public class MainListActivity extends Activity
     public void showIconClick(View view)
     {
     	if (!iconShown)
-    	{
     		showIcons();
-    		iconShown = true;
-    	} else
-    	{
+    	else
     		hideIcons();
-    		iconShown = false;
-    	}
     }
+    
     private void showIcons()
     {
     	iconsLayout.setVisibility(View.VISIBLE);
     	smileyIconLayout.setVisibility(View.VISIBLE);
     	showIconBtn.setImageResource(android.R.drawable.ic_menu_more);
-    	//createImageBtn();
+    	createImageBtn();
     	createIconsBtn();
+    	iconShown = true;
     }
+    
     private void hideIcons()
     {
     	iconsLayout.setVisibility(View.GONE);
     	smileyIconLayout.setVisibility(View.GONE);
     	showIconBtn.setImageResource(android.R.drawable.ic_menu_add);
+    	iconShown = false;
     }
     
     public boolean onKeyDown(int keyCode, KeyEvent event)
@@ -574,14 +593,90 @@ public class MainListActivity extends Activity
 		if (keyCode == KeyEvent.KEYCODE_BACK || event.getAction() == KeyEvent.KEYCODE_BACK)
 		{
 			if (iconShown)
-			{
 				hideIcons();
-				iconShown = false;
-			} else
+			else {
+				imageLoader.clearCache();
 				android.os.Process.killProcess(android.os.Process.myPid());
+			}
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
+	}
+    
+    public void LoadingShow()
+    {
+    	loading.setVisibility(View.VISIBLE);
+    }
+    
+    public void LoadingHide()
+    {
+    	loading.setVisibility(View.GONE);
+    }
+    
+    public static Bitmap getDecodedBitmap(String imgPath, int reqWidth, int reqHeight)
+	{
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(imgPath, options);
+		options.inSampleSize = getInSampleSize(options, reqWidth, reqHeight);
+		
+		int imgWidth = options.outWidth;
+		int imgHeight = options.outHeight;
+		String imgType = options.outMimeType;
+		Log.i("ImageInfo~", imgType + " " + imgWidth + " x " + imgHeight);
+		
+		options.inJustDecodeBounds = false;
+		Bitmap imageInSampleSize = BitmapFactory.decodeFile(imgPath, options);
+		return createScaleBitmap(imageInSampleSize, reqWidth, reqHeight, options.inSampleSize);
+	}
+	
+	private static int getInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
+	{
+		final int width = options.outWidth;
+		final int height = options.outHeight;
+		int inSampleSize = 1;
+		
+		if (width > reqWidth || height > reqHeight)
+		{
+			final int halfWidth = width / 2;
+			final int halfHeight = height / 2;
+			
+			while ((halfWidth / inSampleSize) > reqWidth && (halfHeight / inSampleSize) > reqHeight)
+			{
+				inSampleSize *= 2;
+			}
+		}
+		return inSampleSize;
+	}
+	
+	private static Bitmap createScaleBitmap(Bitmap image, int dstWidth, int dstHeight, int inSampleSize)
+	{
+		Bitmap scaledImg = Bitmap.createScaledBitmap(image, dstWidth, dstHeight, false);
+		if (image != scaledImg) {
+			image.recycle();
+			return scaledImg;
+		}
+		else {
+			scaledImg.recycle();
+			return image;
+		}
+	}
+	
+	public String getImagePathByName(String name)
+	{
+		String SDPath = Environment.getExternalStorageDirectory().getPath();
+		String cacheDir = getResources().getString(R.string.cache_dirname);
+		String imgPathName;
+		
+		HashMap<String, String> imageMap = getImageMap();
+		if (imageMap.containsKey(name)) {
+			imgPathName = SDPath + "/" + cacheDir + "/" + imageMap.get(name);
+			return imgPathName;
+		}
+		else {
+			shortMessage("Can't Find Image Name in HashMap!");
+			return null;
+		}
 	}
     
 	public void shortMessage(String msg)
@@ -604,11 +699,10 @@ public class MainListActivity extends Activity
 		case R.id.menu_clear:
 			imageLoader.clearCache();
 			SmileysParser.init(this);
-			
-			if (iconShown) {
+			exList.invalidateViews();
+			if (iconShown)
 				hideIcons();
-				iconShown = false;
-			}
+			
 			shortMessage("Image Cache Cleared");
 			break;
 		

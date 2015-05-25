@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.widget.ImageView;
 
 public class ImageLoader
@@ -34,7 +35,7 @@ public class ImageLoader
         executorService = Executors.newFixedThreadPool(5);
     }
     
-    //final int coffeeImage = R.drawable.coffee_icon;
+    final int tempImage = R.drawable.wait01;
     public void DisplayImage(String url, ImageView imageView)
     {
         imageViews.put(imageView, url);
@@ -45,7 +46,7 @@ public class ImageLoader
         else
         {
             queuePhoto(url, imageView);
-            //imageView.setImageResource(coffeeImage);
+            imageView.setImageResource(tempImage);
         }
     }
         
@@ -55,38 +56,46 @@ public class ImageLoader
         executorService.submit(new PhotosLoader(p));
     }
     
-    private Bitmap getBitmap(String url) 
+    public Bitmap getBitmap(String url, boolean needDecode) 
     {
         File f = fileCache.getFile(url);
         
         //from SD cache
         Bitmap b  =  decodeFile(f);
+        
         if(b != null)
             return b;
-        
-        //from web
-        try
-        {
-            Bitmap bitmap = null;
-            URL imageUrl  =  new URL(url);
-            HttpURLConnection conn  =  (HttpURLConnection)imageUrl.openConnection();
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(30000);
-            conn.setInstanceFollowRedirects(true);
-            InputStream is = conn.getInputStream();
-            OutputStream os  =  new FileOutputStream(f);
-            Utils.CopyStream(is, os);
-            os.close();
-            conn.disconnect();
-            bitmap  =  decodeFile(f);
-            return bitmap;
-        }
-        catch (Throwable ex)
-        {
-           ex.printStackTrace();
-           if(ex instanceof OutOfMemoryError)
-               memoryCache.clear();
-           return null;
+        else {
+        	//from web
+        	try
+        	{
+        		Log.d("getBitmap", "Getitng Bitmap~~");
+        		Bitmap bitmap = null;
+        		URL imageUrl  =  new URL(url);
+        		HttpURLConnection conn  =  (HttpURLConnection)imageUrl.openConnection();
+        		conn.setConnectTimeout(30000);
+        		conn.setReadTimeout(30000);
+        		conn.setInstanceFollowRedirects(true);
+        		InputStream is = conn.getInputStream();
+        		OutputStream os  =  new FileOutputStream(f);
+        		Utils.CopyStream(is, os);
+        		os.close();
+        		conn.disconnect();
+        		
+        		if (needDecode) {
+        			bitmap  =  decodeFile(f);
+        			return bitmap;
+        		} else
+        			return null;
+        	}
+        	catch (Throwable ex)
+        	{
+        		Log.e("getBitmapFiled", ""+ex);
+        		ex.printStackTrace();
+        		if(ex instanceof OutOfMemoryError)
+        			memoryCache.clear();
+        		return null;
+        	}
         }
     }
 
@@ -95,15 +104,16 @@ public class ImageLoader
     {
         try
         {
+        	Log.d("DecodeFile", "Decoding Bitmap~~");
             //decode image size
             BitmapFactory.Options bfOptions1  =  new BitmapFactory.Options();
             bfOptions1.inJustDecodeBounds  =  true;
             FileInputStream stream1 = new FileInputStream(f);
-            BitmapFactory.decodeStream(stream1,null,bfOptions1);
+            BitmapFactory.decodeStream(stream1, null, bfOptions1);
             stream1.close();
             
             //Find the correct scale value. It should be the power of 2.
-            final int REQUIRED_SIZE = 70;
+            final int REQUIRED_SIZE = 90;
             int width_tmp = bfOptions1.outWidth, height_tmp = bfOptions1.outHeight;
             int scale = 1;
             while(true)
@@ -121,6 +131,7 @@ public class ImageLoader
             FileInputStream stream2 = new FileInputStream(f);
             Bitmap bitmap = BitmapFactory.decodeStream(stream2, null, bfOptions2);
             stream2.close();
+            Log.d("DecodeFile", "Decoding DONE!!");
             return bitmap;
         }
         catch (FileNotFoundException e) {
@@ -160,7 +171,7 @@ public class ImageLoader
                 if (imageViewReused(photoToLoad))
                     return;
                 
-                Bitmap bmp = getBitmap(photoToLoad.url);
+                Bitmap bmp = getBitmap(photoToLoad.url, true);
                 memoryCache.put(photoToLoad.url, bmp);
                 
                 if (imageViewReused(photoToLoad))
@@ -196,7 +207,7 @@ public class ImageLoader
             if (bitmap != null)
                 photoToLoad.imageView.setImageBitmap(bitmap);
             else {}
-                //photoToLoad.imageView.setImageResource(coffeeImage);
+                photoToLoad.imageView.setImageResource(tempImage);
         }
     }
 
