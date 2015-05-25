@@ -447,7 +447,7 @@ public class MainListActivity extends Activity
     	sb = new StringBuilder(oriText);
     	sb.insert(index, iconText);
     	
-    	HashMap<String, Bitmap> imgMap = exAdapter.getImageMap();			//從 exAdapter 中抓出新版的 ImageMap
+    	HashMap<String, Bitmap> imgMap = exAdapter.getNewImageMap();			//從 exAdapter 中抓出新版的 ImageMap
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
     		//String imgPathName = getImagePathByName(iconText);
