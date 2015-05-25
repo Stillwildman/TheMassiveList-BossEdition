@@ -43,6 +43,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	SmileysParser parser;
 	private Drawable waitIcon;
 	private HashMap<String, Bitmap> imgMap;
+	private StringBuilder urlSb;
 	
 	private String[] url_array;
 	private ArrayList<Integer> ranUrlNumList;
@@ -158,34 +159,39 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		if (groupText.contains("http://") || groupText.contains("https://"))
 		{
-			String imgUrl = getImgUrlString(groupText);
+			List<String> imgUrlList = getImgUrlString(groupText);
 			
-			if (!imgUrl.equals("Unkonw Image URL!"))
+			for (String imgUrl: imgUrlList)
 			{
-				//File imgFile = fileCache.getFile(imgUrl);
-
-				if (imgMap.containsKey(imgUrl)) {
-					try {
-						holder.text1.setText(parser.addIconSpans(groupText, imgMap.get(imgUrl)));
-						Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
-					} catch (Exception e) {
-						//Log.e("ImageFileFielded", e.getMessage().toString());
-						holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
-						((MainListActivity) context).shortMessage("Slow Down Please!");
+				if (!imgUrl.equals("Unkonw Image URL!"))
+				{
+					//File imgFile = fileCache.getFile(imgUrl);
+					Log.d("GetImageURL!!", imgUrl);
+					
+					if (imgMap.containsKey(imgUrl)) {
+						try {
+							holder.text1.setText(parser.addIconSpans(groupText, imgMap));
+							Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
+						} catch (Exception e) {
+							//Log.e("ImageFileFielded", e.getMessage().toString());
+							holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+							((MainListActivity) context).shortMessage("Slow Down Please!");
+						}
 					}
-				}
-				else {
-					try {
-						//holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
-						downloadBitmapByUrl(imgUrl);
-						Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
-					} catch (Exception e) {
-						e.printStackTrace();
-						Log.e("ImageFile", "NO!!!!! What happed~~~");
+					else {
+						try {
+							holder.text1.setText(groupText);
+							//holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+							downloadBitmapByUrl(imgUrl);
+							Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
+						} catch (Exception e) {
+							e.printStackTrace();
+							Log.e("ImageFile", "NO!!!!! What happed~~~");
+						}
 					}
-				}
-			} else
-				((MainListActivity) context).shortMessage("Unknow URL!!");
+				} else
+					((MainListActivity) context).shortMessage("Unknow URL!!");
+			}
 		} else
 			holder.text1.setText(parser.addIconSpans(groupText, null));
 		
@@ -395,19 +401,45 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 	}
 	
-	private String getImgUrlString(String text)
+	private List<String> getImgUrlString(String text)	//將groupText丟過來，藉由關鍵字和各種迴圈來把其中的URLs建立到List裡
 	{
+		String[] urlArr = text.split("http");
+		List<String> urlList = new ArrayList<String>();
 		
-		
-		if (text.contains(".png"))
-			return text.substring(text.indexOf("http"), text.lastIndexOf(".png")+4);
-		if (text.contains(".jpg"))
-			return text.substring(text.indexOf("http"), text.lastIndexOf(".jpg")+4);
-		if (text.contains(".gif"))
-			return text.substring(text.indexOf("http"), text.lastIndexOf(".gif")+4);
-		if (text.contains(".bmp"))
-			return text.substring(text.indexOf("http"), text.lastIndexOf(".bmp")+4);
-		return "Unknow Image URL!";
+		for (int i = 1; i < urlArr.length; i++)
+		{
+			if (text.contains(".png"))
+			{
+				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".png")+4);
+				urlSb = new StringBuilder(url);
+				urlSb.insert(0, "http");
+				urlList.add(urlSb.toString());
+			}
+			else if (text.contains(".jpg"))
+			{
+				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".jpg")+4);
+				urlSb = new StringBuilder(url);
+				urlSb.insert(0, "http");
+				urlList.add(urlSb.toString());
+			}
+			else if (text.contains(".gif"))
+			{
+				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".gif")+4);
+				urlSb = new StringBuilder(url);
+				urlSb.insert(0, "http");
+				urlList.add(urlSb.toString());
+			}
+			else if (text.contains(".bmp"))
+			{
+				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".bmp")+4);
+				urlSb = new StringBuilder(url);
+				urlSb.insert(0, "http");
+				urlList.add(urlSb.toString());
+			}
+			else
+				urlList.add("Unknow Image URL!");
+		}
+		return urlList;
 	}
 	
 	public void downloadBitmapByUrl(final String urlString)
@@ -419,8 +451,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				@Override
 				public void run() {
 					Log.d("BitmapDownload", "Downloading~~~~");
-					imageLoader.getBitmap(urlString, false);
-					handler.obtainMessage(0, urlString).sendToTarget();
+					imageLoader.getBitmap(urlString, false);	//偷用 ImageLoader 裡 getBitmap 的方法，設為false表示不用他的decodeFile()
+					handler.obtainMessage(0, urlString).sendToTarget();	//下載完後將 URL 送去給 handler 玩~ 
 				}
 			}).start();
 		}
@@ -447,11 +479,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				
 				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);
 				try {
-					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 90, 90);
-					imgMap.put(urlString, imgBitmap);
+					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 80, 80);
+					imgMap.put(urlString, imgBitmap);		//將下載好並Decode完後的Bitmap放入新版的 ImageMap 中！(key即為URL~)
 				} catch(Exception e) {
-					Log.e("ImageBitmap", "OH!!!!!NO~~~~~~~~~");
-					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");
+					Log.e("ImageBitmap", "OH!!!!!NO~~~~~~~~~");			//如果滑太快，上面的 getDecodedBitmap() 中的工作還來不及完成...
+					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");	//然後你又 View 到那一段的話...那就 OH!!! NO~~ 了阿
 				}
 				((MainListActivity) context).LoadingHide();
 				SmileysParser.init(context);
@@ -462,4 +494,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			}
 		}
 	};
+	
+	public HashMap<String, Bitmap> getImageMap()
+	{
+		return imgMap;
+	}
 }

@@ -101,7 +101,7 @@ public class SmileysParser
 	}
 
 	@SuppressWarnings("deprecation")
-	public CharSequence addIconSpans(CharSequence text, Bitmap images)
+	public CharSequence addIconSpans(CharSequence text, HashMap<String, Bitmap> imageMap)
 	{
 		SpannableStringBuilder builder = new SpannableStringBuilder(text);
 		
@@ -125,9 +125,9 @@ public class SmileysParser
 			
 			while (imgMatcher.find())
 			{
-				Log.d("ImageMatched!!!", ""+imgMatcher.toString());
+				//Log.d("ImageMatched!!!", ""+imgMatcher.toString());
+				Bitmap images = imageMap.get(imgMatcher.group());
 
-				//Bitmap bitImg = compressImage(drawableToBitmap(resDraw));
 				ImageSpan imageSpan = new ImageSpan(images, ImageSpan.ALIGN_BOTTOM); 
 				builder.setSpan(imageSpan, imgMatcher.start(), imgMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
