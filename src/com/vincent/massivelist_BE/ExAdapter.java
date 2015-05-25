@@ -495,7 +495,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 	};
 	
-	public HashMap<String, Bitmap> getImageMap()
+	public HashMap<String, Bitmap> getImageMap()	//這裡是給 setIconText() 用的
 	{
 		return imgMap;
 	}
